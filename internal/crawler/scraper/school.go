@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/big-dust/DreamBridge/internal/crawler/model"
 	"io"
 	"net/http"
@@ -37,9 +38,96 @@ func SchoolList() (*model.SchoolListResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	schoolList := &model.SchoolListResponse{}
-	if err = json.Unmarshal(bodyText, schoolList); err != nil {
+	schoolListResp := &model.SchoolListResponse{}
+	if err = json.Unmarshal(bodyText, schoolListResp); err != nil {
 		return nil, err
 	}
-	return schoolList, nil
+	return schoolListResp, nil
+}
+
+func SchoolInfo(schoolId int) (*model.SchoolInfoResponse, error) {
+	client := &http.Client{}
+	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/school/%d/info.json", schoolId)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("sec-ch-ua", `"Not A(Brand";v="99", "Microsoft Edge";v="121", "Chromium";v="121"`)
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Referer", "https://www.gaokao.cn/")
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+	req.Header.Set("sec-ch-ua-platform", `"macOS"`)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	schoolInfoResp := &model.SchoolInfoResponse{}
+	if err = json.Unmarshal(bodyText, schoolInfoResp); err != nil {
+		return nil, err
+	}
+	return schoolInfoResp, nil
+}
+
+func JobDetail(schoolId int) (*model.JobDetailResponse, error) {
+	client := &http.Client{}
+	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/school/%d/pc_jobdetail.json", schoolId)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("sec-ch-ua", `"Not A(Brand";v="99", "Microsoft Edge";v="121", "Chromium";v="121"`)
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Referer", "https://www.gaokao.cn/")
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+	req.Header.Set("sec-ch-ua-platform", `"macOS"`)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	jobDetailResp := &model.JobDetailResponse{}
+	if err = json.Unmarshal(bodyText, jobDetailResp); err != nil {
+		return nil, err
+	}
+	return jobDetailResp, nil
+}
+
+func NationFeature(schoolId int) (*model.NationFeatureResponse, error) {
+	client := &http.Client{}
+	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/school/%d/pc_special.json", schoolId)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("sec-ch-ua", `"Not A(Brand";v="99", "Microsoft Edge";v="121", "Chromium";v="121"`)
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Referer", "https://www.gaokao.cn/")
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+	req.Header.Set("sec-ch-ua-platform", `"macOS"`)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	nationFeatureResp := &model.NationFeatureResponse{}
+	if err = json.Unmarshal(bodyText, nationFeatureResp); err != nil {
+		return nil, err
+	}
+	return nationFeatureResp, nil
 }

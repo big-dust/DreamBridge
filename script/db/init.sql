@@ -15,24 +15,34 @@ create table schools (
                          website varchar(255), -- 官网
                          recruitment_phone varchar(50), -- 招生电话
                          email varchar(100), -- 邮箱
-                         highest_score int, -- 最高分
-                         lowest_score int, -- 最低分
-                         highest_rank int, -- 最高名次
-                         lowest_rank int, -- 最低名次
-                         promotion_rate decimal(5, 2), -- 升学率
-                         abroad_rate decimal(5, 2), -- 出国率
-                         employment_rate decimal(5, 2), -- 就业率
+
+                         promotion_rate varchar(50), -- 升学率
+                         abroad_rate varchar(50), -- 出国率
+                         employment_rate varchar(50), -- 就业率
                          double_first_class_disciplines text -- 双一流学科
+);
+
+create table scores (
+        school_id int,
+        year int,
+        location varchar(50),
+        highest int,
+        lowest  int,
+        highest_rank int, -- 最高名次
+        lowest_rank int, -- 最低名次
+        foreign key (school_id) references schools(id) -- 外键关联院校表
 );
 
 create table majors (
                         id int auto_increment primary key, -- 主键ID
-                        name varchar(255) not null, -- 名称
-                        recruitment_number int, -- 招收人数
+                        year     int,
+                        location varchar(50),
                         highest_score int, -- 最高分
                         lowest_score int, -- 最低分
                         highest_rank int, -- 最高名次
                         lowest_rank int, -- 最低名次
+                        name varchar(255) not null, -- 名称
+                        recruitment_number int, -- 招收人数
                         national_feature boolean, -- 国家特色
                         level varchar(100), -- 层次
                         discipline_category varchar(100), -- 学科门类
