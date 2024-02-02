@@ -3,12 +3,12 @@ package scraper
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/big-dust/DreamBridge/internal/crawler/model"
+	"github.com/big-dust/DreamBridge/internal/crawler/response"
 	"io"
 	"net/http"
 )
 
-func SpecialInfo(schoolId int) (*model.SpecialResponse, error) {
+func SpecialInfo(schoolId int) (*response.SpecialResponse, error) {
 	client := &http.Client{}
 	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/school/%d/pc_special.json", schoolId)
 	req, err := http.NewRequest("GET", url, nil)
@@ -30,7 +30,7 @@ func SpecialInfo(schoolId int) (*model.SpecialResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	nationFeatureResp := &model.SpecialResponse{}
+	nationFeatureResp := &response.SpecialResponse{}
 	if err = json.Unmarshal(bodyText, nationFeatureResp); err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func SpecialInfo(schoolId int) (*model.SpecialResponse, error) {
 }
 
 // 湖北locationId = 42
-func HistoryRecruit(schoolId int, locationId int) (*model.HistoryRecruitResponse, error) {
+func HistoryRecruit(schoolId int, locationId int) (*response.HistoryRecruitResponse, error) {
 	client := &http.Client{}
 	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/history_recruit/%d/%d.json", schoolId, locationId)
 	req, err := http.NewRequest("GET", url, nil)
@@ -60,14 +60,14 @@ func HistoryRecruit(schoolId int, locationId int) (*model.HistoryRecruitResponse
 	if err != nil {
 		return nil, err
 	}
-	historyRecruitResp := &model.HistoryRecruitResponse{}
+	historyRecruitResp := &response.HistoryRecruitResponse{}
 	if err := json.Unmarshal(bodyText, historyRecruitResp); err != nil {
 		return nil, err
 	}
 	return historyRecruitResp, nil
 }
 
-func HistoryAdmission(schoolId int, locationId int) (*model.HistoryAdmissionResponse, error) {
+func HistoryAdmission(schoolId int, locationId int) (*response.HistoryAdmissionResponse, error) {
 	client := &http.Client{}
 	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/history_admission/%d/%d.json", schoolId, locationId)
 	req, err := http.NewRequest("GET", url, nil)
@@ -89,7 +89,7 @@ func HistoryAdmission(schoolId int, locationId int) (*model.HistoryAdmissionResp
 	if err != nil {
 		return nil, err
 	}
-	historyAdmissionResp := &model.HistoryAdmissionResponse{}
+	historyAdmissionResp := &response.HistoryAdmissionResponse{}
 	if err = json.Unmarshal(bodyText, historyAdmissionResp); err != nil {
 		return nil, err
 	}

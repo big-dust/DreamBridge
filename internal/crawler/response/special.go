@@ -1,4 +1,4 @@
-package model
+package response
 
 type SpecialResponse struct {
 	Code    string      `json:"code"`

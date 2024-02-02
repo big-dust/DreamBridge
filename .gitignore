@@ -21,3 +21,7 @@
 go.work
 
 .idea
+# 配置
+*.toml
+# 日志
+*.log

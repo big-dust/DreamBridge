@@ -15,7 +15,6 @@ create table schools (
                          website varchar(255), -- 官网
                          recruitment_phone varchar(50), -- 招生电话
                          email varchar(100), -- 邮箱
-
                          promotion_rate varchar(50), -- 升学率
                          abroad_rate varchar(50), -- 出国率
                          employment_rate varchar(50), -- 就业率
@@ -23,12 +22,13 @@ create table schools (
 );
 
 create table scores (
+        id int auto_increment primary key, -- 主键ID
         school_id int,
+        location int,
         year int,
-        location varchar(50),
-        highest int,
+        type_id int,
+        tag  varchar(50), -- 批次
         lowest  int,
-        highest_rank int, -- 最高名次
         lowest_rank int, -- 最低名次
         foreign key (school_id) references schools(id) -- 外键关联院校表
 );
@@ -45,7 +45,7 @@ create table majors (
                         foreign key (school_id) references schools(id) -- 外键关联院校表
 );
 
-create table scores (
+create table major_scores (
                         special_id int,
                         location varchar(50),
                         year     int,

@@ -1,4 +1,4 @@
-package model
+package response
 
 type SchoolListResponse struct {
 	Code      string         `json:"code"`      // 响应码
@@ -18,38 +18,38 @@ type Item struct {
 	F985          int    `json:"f985"`            // 是否985工程院校
 	Level         string `json:"level"`           // 等级
 	// unuseful
-	Admissions    string `json:"admissions"`     // 录取信息
-	Answerurl     string `json:"answerurl"`      // 回答URL
-	Belong        string `json:"belong"`         // 所属分类
-	Central       string `json:"central"`        // 是否为中央直属
-	CityID        string `json:"city_id"`        // 城市ID
-	CollegesLevel string `json:"colleges_level"` // 学院等级
-	CountyID      string `json:"county_id"`      // 县级ID
-	CountyName    string `json:"county_name"`    // 县级名称
-	Department    string `json:"department"`     // 部门/系
-	Doublehigh    string `json:"doublehigh"`     // 是否双高学校（高水平大学建设高校）
-	DualClass     string `json:"dual_class"`     // 双一流分类
-	Hightitle     string `json:"hightitle"`      // 高层次称号
-	InnerRate     int    `json:"inner_rate"`     // 内部评比率
-	IsRecruitment string `json:"is_recruitment"` // 是否招生
-	LevelName     string `json:"level_name"`     // 等级名称
-	Nature        string `json:"nature"`         // 性质
-	NatureName    string `json:"nature_name"`    // 性质名称
-	OuterRate     int    `json:"outer_rate"`     // 外部评比率
-	ProvinceID    string `json:"province_id"`    // 省份ID
-	ProvinceName  string `json:"province_name"`  // 省份名称
-	Rank          string `json:"rank"`           // 排名
-	RankType      string `json:"rank_type"`      // 排名类型
-	Rate          int    `json:"rate"`           // 评比率
-
-	SchoolType      string `json:"school_type"`       // 学校类型
-	TagName         string `json:"tag_name"`          // 标签名称
-	Type            string `json:"type"`              // 类型
-	TypeName        string `json:"type_name"`         // 类型名称
-	ViewMonth       string `json:"view_month"`        // 月浏览量
-	ViewTotal       string `json:"view_total"`        // 总浏览量
-	ViewTotalNumber string `json:"view_total_number"` // 总浏览数
-	ViewWeek        string `json:"view_week"`         // 周浏览量
+	//Admissions    string `json:"admissions"`     // 录取信息
+	//Answerurl     string `json:"answerurl"`      // 回答URL
+	//Belong        string `json:"belong"`         // 所属分类
+	//Central       string `json:"central"`        // 是否为中央直属
+	//CityID        string `json:"city_id"`        // 城市ID
+	//CollegesLevel string `json:"colleges_level"` // 学院等级
+	//CountyID      string `json:"county_id"`      // 县级ID
+	//CountyName    string `json:"county_name"`    // 县级名称
+	//Department    string `json:"department"`     // 部门/系
+	//Doublehigh    string `json:"doublehigh"`     // 是否双高学校（高水平大学建设高校）
+	//DualClass     string `json:"dual_class"`     // 双一流分类
+	//Hightitle     string `json:"hightitle"`      // 高层次称号
+	//InnerRate     string `json:"inner_rate"`     // 内部评比率
+	//IsRecruitment string `json:"is_recruitment"` // 是否招生
+	//LevelName     string `json:"level_name"`     // 等级名称
+	//Nature        string `json:"nature"`         // 性质
+	//NatureName    string `json:"nature_name"`    // 性质名称
+	//OuterRate     string `json:"outer_rate"`     // 外部评比率
+	//ProvinceID    string `json:"province_id"`    // 省份ID
+	//ProvinceName  string `json:"province_name"`  // 省份名称
+	//Rank          string `json:"rank"`           // 排名
+	//RankType      string `json:"rank_type"`      // 排名类型
+	//Rate          string `json:"rate"`           // 评比率
+	//
+	//SchoolType      string `json:"school_type"`       // 学校类型
+	//TagName         string `json:"tag_name"`          // 标签名称
+	//Type            string `json:"type"`              // 类型
+	//TypeName        string `json:"type_name"`         // 类型名称
+	//ViewMonth       string `json:"view_month"`        // 月浏览量
+	//ViewTotal       string `json:"view_total"`        // 总浏览量
+	//ViewTotalNumber string `json:"view_total_number"` // 总浏览数
+	//ViewWeek        string `json:"view_week"`         // 周浏览量
 }
 type SchoolListData struct {
 	Item     []Item `json:"item"`     // 学校列表项
@@ -242,39 +242,87 @@ type JobDetailResponse struct {
 				One string `json:"1"`
 			} `json:"abroad"`
 		} `json:"jobrate"`
-		Province map[string]struct {
-			ID           string `json:"id"`
-			SchoolID     string `json:"school_id"`
-			Province     string `json:"province"`
-			Rate         string `json:"rate"`
-			Num          string `json:"num"`
-			Sort         string `json:"sort"`
-			UpdateID     string `json:"update_id"`
-			UpdateTime   string `json:"update_time"`
-			Year         string `json:"year"`
-			ProvinceName string `json:"province_name"`
-		} `json:"province"`
-		Attr struct {
-			Minyingqiye     string `json:"民营企业"`
-			Guoyouqiye      string `json:"国有企业"`
-			Dangzhengjiguan string `json:"党政机关"`
-			Keyandwunit     string `json:"科研单位"`
-			Qitashiyedanwei string `json:"其他事业单位"`
-			Waiziquanye     string `json:"外资企业"`
-		} `json:"attr"`
-		Company map[string]string `json:"company"`
-		Gradute []struct {
-			ID         string `json:"id"`
-			SchoolID   string `json:"school_id"`
-			FemaleNum  string `json:"female_num"`
-			MenNum     string `json:"men_num"`
-			MenRate    string `json:"men_rate"`
-			FemaleRate string `json:"female_rate"`
-			UpdateID   string `json:"update_id"`
-			UpdateTime string `json:"update_time"`
-			Year       string `json:"year"`
-		} `json:"gradute"`
-		Remark string `json:"remark"`
+		//Province map[string]struct {
+		//	ID           string `json:"id"`
+		//	SchoolID     string `json:"school_id"`
+		//	Province     string `json:"province"`
+		//	Rate         string `json:"rate"`
+		//	Num          string `json:"num"`
+		//	Sort         string `json:"sort"`
+		//	UpdateID     string `json:"update_id"`
+		//	UpdateTime   string `json:"update_time"`
+		//	Year         string `json:"year"`
+		//	ProvinceName string `json:"province_name"`
+		//} `json:"province"`
+		//Attr struct {
+		//	Minyingqiye     string `json:"民营企业"`
+		//	Guoyouqiye      string `json:"国有企业"`
+		//	Dangzhengjiguan string `json:"党政机关"`
+		//	Keyandwunit     string `json:"科研单位"`
+		//	Qitashiyedanwei string `json:"其他事业单位"`
+		//	Waiziquanye     string `json:"外资企业"`
+		//} `json:"attr"`
+		//Company map[string]string `json:"company"`
+		//Gradute []struct {
+		//	ID         string `json:"id"`
+		//	SchoolID   string `json:"school_id"`
+		//	FemaleNum  string `json:"female_num"`
+		//	MenNum     string `json:"men_num"`
+		//	MenRate    string `json:"men_rate"`
+		//	FemaleRate string `json:"female_rate"`
+		//	UpdateID   string `json:"update_id"`
+		//	UpdateTime string `json:"update_time"`
+		//	Year       string `json:"year"`
+		//} `json:"gradute"`
+		//Remark string `json:"remark"`
 	} `json:"data"`
 	Md5 string `json:"md5"`
+}
+
+type ProvinceScoreResponse struct {
+	Code      string `json:"code"`
+	Message   string `json:"message"`
+	Data      Data   `json:"data"`
+	Location  string `json:"location"`
+	Encrydata string `json:"encrydata"`
+}
+type ItemScore struct {
+	//Answerurl         string `json:"answerurl"`
+	//Average           string `json:"average"`
+	//AvgSection        string `json:"avg_section"`
+	//CityName          string `json:"city_name"`
+	//CountyName        string `json:"county_name"`
+	//DualClass         int    `json:"dual_class"`
+	//DualClassName     string `json:"dual_class_name"`
+	//Filing            int    `json:"filing"`
+	//FirstKm           int    `json:"first_km"`
+	//LocalBatchID      string `json:"local_batch_id"`
+	//LocalBatchName string `json:"local_batch_name"`
+	//LocalProvinceName string `json:"local_province_name"`
+	//LocalTypeName     string `json:"local_type_name"`
+	//MajorScore        string `json:"major_score"`
+	//Max        string `json:"max"`
+	Min int `json:"min"`
+	//MinSection int `json:"min_section"`
+	//Name              string `json:"name"`
+	//NatureName        string `json:"nature_name"`
+	//Num               string `json:"num"`
+	//Proscore          int    `json:"proscore"`
+	//ProvinceID        int    `json:"province_id"`
+	//ProvinceName      string `json:"province_name"`
+	//SchoolID          int    `json:"school_id"`
+	//SgFxk             int    `json:"sg_fxk"`
+	//SgInfo            string `json:"sg_info"`
+	//SgName            string `json:"sg_name"`
+	//SgSxk             string `json:"sg_sxk"`
+	//SgType            int    `json:"sg_type"`
+	//SpecialGroup      string `json:"special_group"`
+	//XclevelName       string `json:"xclevel_name"`
+	//Year              int    `json:"year"`
+	ZslxName string `json:"zslx_name"`
+}
+
+type Data struct {
+	Item     []ItemScore `json:"item"`
+	NumFound int         `json:"numFound"`
 }
