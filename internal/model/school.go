@@ -50,3 +50,14 @@ func UpdateSchool(db *gorm.DB, school *School) {
 func DeleteSchool(db *gorm.DB, id int) {
 	db.Delete(&School{}, id)
 }
+
+func CreateSchoolScore(school *School, score []*Score) {
+	tx := common.DB.Begin()
+	if err := tx.Create(school).Error; err != nil {
+		common.LOG.Error("CreateSchoolScore: " + err.Error())
+	}
+	if err := tx.Create(score).Error; err != nil {
+		common.LOG.Error("CreateSchoolScore: " + err.Error())
+	}
+	tx.Commit()
+}

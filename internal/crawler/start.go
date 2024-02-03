@@ -5,9 +5,7 @@ import (
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"github.com/big-dust/DreamBridge/pkg/config"
 	"github.com/big-dust/DreamBridge/pkg/gorm"
-	"github.com/big-dust/DreamBridge/pkg/proxy"
 	"github.com/big-dust/DreamBridge/pkg/zap"
-	"time"
 )
 
 func Start() {
@@ -23,8 +21,13 @@ func Start() {
 	common.DB = DB
 	// 开启代理
 	if common.CONFIG.Bool("proxy.switchon") {
-		go proxy.ChangeHttpProxyIP()
-		time.Sleep(2 * time.Second)
+		//proxy.ChangeHttpProxyIP()
+		//go func() {
+		//	for {
+		//		time.Sleep(10 * time.Second)
+		//		proxy.ChangeHttpProxyIP()
+		//	}
+		//}()
 	}
 	// 爬取数据迁移到数据库
 	migration.Migrate()

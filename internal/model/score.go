@@ -8,17 +8,21 @@ import (
 // 定义 Scores 表格的模型
 type Score struct {
 	SchoolID   int
-	Location   int
-	Year       int
-	TypeId     int
-	Tag        string
+	Location   int    //地区
+	Year       int    //年份
+	TypeId     int    //科类
+	BatchName  string //批次
+	Tag        string //类型
+	SgName     string //专业组
 	Lowest     int
 	LowestRank int
 }
 
 // 创建记录
 func CreateScore(score *Score) {
-	common.DB.Create(score)
+	if err := common.DB.Create(score).Error; err != nil {
+		common.LOG.Error("create score: " + err.Error())
+	}
 }
 
 // 查询记录

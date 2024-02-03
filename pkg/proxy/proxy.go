@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 )
 
 var (
@@ -28,7 +29,12 @@ type Data struct {
 }
 
 func genProxyIP() (*GenProxyIPResponse, error) {
-	resp, err := http.Get(common.CONFIG.String("proxy.link"))
+	defer func() {
+		if r := recover(); r != nil {
+			common.LOG.Error(fmt.Sprintf("%v", r))
+		}
+	}()
+	resp, err := http.Get(common.CONFIG.String("proxy.pinyiLink"))
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +51,19 @@ func genProxyIP() (*GenProxyIPResponse, error) {
 
 func ChangeHttpProxyIP() {
 	resp, _ := genProxyIP()
+	for i := 0; i < 3; i++ {
+		if resp != nil && resp.Code == 0 {
+			break
+		}
+		common.LOG.Info("change ip: msg:" + resp.Msg)
+		time.Sleep(2 * time.Second)
+		resp, _ = genProxyIP()
+	}
+	// 尝试获取三次失败，则保持不变
+	if resp == nil || len(resp.Data) == 0 {
+		return
+	}
+
 	mu.Lock()
 	IP = resp.Data[0].IP
 	PORT = resp.Data[0].Port
@@ -59,13 +78,19 @@ func NewHttpClientWithProxy() (*http.Client, error) {
 	ip := IP
 	port := PORT
 	mu.RUnlock()
-
+	if ip == "" {
+		return &http.Client{}, nil
+	}
+	common.LOG.Info(fmt.Sprintf("proxy url: https://%s:%d", ip, port))
 	urli := url.URL{}
 	urlproxy, _ := urli.Parse(fmt.Sprintf("http://%s:%d", ip, port))
 
 	client := &http.Client{
+		Timeout: 5 * time.Second,
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(urlproxy),
+			//TLSClientConfig:     &tls.Config{},
+			//TLSHandshakeTimeout: 0,
 		},
 	}
 	return client, nil

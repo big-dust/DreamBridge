@@ -9,9 +9,7 @@ type MajorScore struct {
 	Year              int
 	Kelei             string
 	RecruitmentNumber int
-	HighestScore      int
 	LowestScore       int
-	HighestRank       int
 	LowestRank        int
 }
 

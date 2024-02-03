@@ -10,8 +10,9 @@ type Major struct {
 	Level              string
 	DisciplineCategory string
 	MajorCategory      string
-	Duration           int
+	LimitYear          string
 	SchoolID           int
+	SpecialId          string
 }
 
 // 创建记录

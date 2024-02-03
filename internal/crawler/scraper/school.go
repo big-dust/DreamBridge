@@ -18,7 +18,7 @@ func SchoolList(page int) (*response.SchoolListResponse, error) {
 		return nil, err
 	}
 	var data = strings.NewReader(`{"keyword":"","page":` + strconv.Itoa(page) + `,"province_id":"","ranktype":"","request_type":1,"signsafe":"a6beb63405f371aece65cadfb263f006","size":100,"top_school_id":"[2461]","type":"","uri":"apidata/api/gkv3/school/lists"}`)
-	req, err := http.NewRequest("POST", "https://api.zjzw.cn/web/api/?keyword=&page="+strconv.Itoa(page)+"&province_id=&ranktype=&request_type=1&size=50&top_school_id=\\[2461\\]&type=&uri=apidata/api/gkv3/school/lists&signsafe=a6beb63405f371aece65cadfb263f006", data)
+	req, err := http.NewRequest("POST", "https://api.zjzw.cn/web/api/?keyword=&page="+strconv.Itoa(page)+"&province_id=&ranktype=&request_type=1&size=5&top_school_id=\\[2461\\]&type=&uri=apidata/api/gkv3/school/lists&signsafe=a6beb63405f371aece65cadfb263f006", data)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,18 @@ func JobDetail(schoolId int) (*response.JobDetailResponse, error) {
 	jobDetailResp := &response.JobDetailResponse{}
 	if err = json.Unmarshal(bodyText, jobDetailResp); err != nil {
 		common.LOG.Error("jobdetail.body:" + string(bodyText))
-		return nil, err
+		jobDetailNullResp := &response.JobDetailNullResp{}
+		if err = json.Unmarshal(bodyText, jobDetailNullResp); err != nil {
+			common.LOG.Panic("job detail:" + err.Error())
+			//fp := &response.FrequentResponse{}
+			//if err = json.Unmarshal(bodyText, fp); err != nil {
+			//	common.LOG.Panic("job detail:" + err.Error())
+			//}
+			//if fp.Message == "访问太过频繁，请稍后再试" {
+			//	common.LOG.Panic("job detail:" + err.Error())
+			//}
+		}
+		return jobDetailResp, nil
 	}
 	return jobDetailResp, nil
 }
@@ -152,8 +163,14 @@ func ProvinceScore(schoolId int, provinceId int, typeId int, year int) (*respons
 	}
 	provinceScoreResp := &response.ProvinceScoreResponse{}
 	if err = json.Unmarshal(bodyText, provinceScoreResp); err != nil {
-		common.LOG.Error("jobdetail.body:" + string(bodyText))
-		return nil, err
+		common.LOG.Error("job detail.body:" + string(bodyText))
+		fp := &response.FrequentResponse{}
+		if err = json.Unmarshal(bodyText, fp); err != nil {
+			common.LOG.Panic("job detail:" + err.Error())
+		}
+		if fp.Message == "访问太过频繁，请稍后再试" {
+			common.LOG.Panic("job detail:" + err.Error())
+		}
 	}
 	return provinceScoreResp, nil
 }

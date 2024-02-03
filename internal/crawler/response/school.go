@@ -63,169 +63,172 @@ type SchoolInfoResponse struct {
 	Md5     string         `json:"md5"`
 }
 type SchoolInfoData struct {
-	SchoolID          string        `json:"school_id"`
-	DataCode          string        `json:"data_code"`
-	Name              string        `json:"name"`
-	Type              string        `json:"type"`
-	SchoolType        string        `json:"school_type"`
-	SchoolNature      string        `json:"school_nature"`
-	Level             string        `json:"level"`
-	CodeEnroll        string        `json:"code_enroll"`
-	ZsCode            string        `json:"zs_code"`
-	Belong            string        `json:"belong"`
-	F985              string        `json:"f985"`
-	F211              string        `json:"f211"`
-	Department        string        `json:"department"`
-	Admissions        string        `json:"admissions"`
-	Central           string        `json:"central"`
-	DualClass         string        `json:"dual_class"`
-	IsSeal            string        `json:"is_seal"`
-	AppliedGrade      string        `json:"applied_grade"`
-	NumSubject        string        `json:"num_subject"`
-	NumMaster         string        `json:"num_master"`
-	NumDoctor         string        `json:"num_doctor"`
-	NumAcademician    string        `json:"num_academician"`
-	NumLibrary        string        `json:"num_library"`
-	NumLab            string        `json:"num_lab"`
-	ProvinceID        string        `json:"province_id"`
-	CityID            string        `json:"city_id"`
-	CountyID          string        `json:"county_id"`
-	IsAds             string        `json:"is_ads"`
-	IsRecruitment     string        `json:"is_recruitment"`
-	CreateDate        string        `json:"create_date"`
-	Area              int           `json:"area"`
-	OldName           string        `json:"old_name"`
-	IsFenxiao         string        `json:"is_fenxiao"`
-	Status            string        `json:"status"`
-	AddID             string        `json:"add_id"`
-	AddTime           string        `json:"add_time"`
-	UpdateID          string        `json:"update_id"`
-	UpdateTime        string        `json:"update_time"`
-	AdLevel           string        `json:"ad_level"`
-	Short             string        `json:"short"`
-	EPc               string        `json:"e_pc"`
-	EApp              string        `json:"e_app"`
-	RuankeRank        string        `json:"ruanke_rank"`
-	Single            string        `json:"single"`
-	CollegesLevel     string        `json:"colleges_level"`
-	Doublehigh        string        `json:"doublehigh"`
-	WslRank           string        `json:"wsl_rank"`
-	QsRank            string        `json:"qs_rank"`
-	XyhRank           string        `json:"xyh_rank"`
-	IsSell            string        `json:"is_sell"`
-	EolRank           string        `json:"eol_rank"`
-	SchoolBatch       string        `json:"school_batch"`
-	UsRank            string        `json:"us_rank"`
-	IsLogo            string        `json:"is_logo"`
-	NumMaster2        string        `json:"num_master2"`
-	NumDoctor2        string        `json:"num_doctor2"`
-	AiStatus          string        `json:"ai_status"`
-	IsAds2            string        `json:"is_ads2"`
-	CoopMoney         string        `json:"coop_money"`
-	BdoldName         string        `json:"bdold_name"`
-	GbhNum            string        `json:"gbh_num"`
-	LevelName         string        `json:"level_name"`
-	TypeName          string        `json:"type_name"`
-	SchoolTypeName    string        `json:"school_type_name"`
-	SchoolNatureName  string        `json:"school_nature_name"`
-	DualClassName     string        `json:"dual_class_name"`
-	SingleYear        int           `json:"single_year"`
-	Remark            []interface{} `json:"remark"`
-	ProvinceName      string        `json:"province_name"`
-	CityName          string        `json:"city_name"`
-	TownName          string        `json:"town_name"`
-	Weiwangzhan       string        `json:"weiwangzhan"`
-	Yjszs             string        `json:"yjszs"`
-	Xiaoyuan          string        `json:"xiaoyuan"`
-	Email             string        `json:"email"`
-	SchoolEmail       string        `json:"school_email"`
-	Address           string        `json:"address"`
-	Postcode          string        `json:"postcode"`
-	Site              string        `json:"site"`
-	SchoolSite        string        `json:"school_site"`
-	Phone             string        `json:"phone"`
-	SchoolPhone       string        `json:"school_phone"`
-	Miniprogram       string        `json:"miniprogram"`
-	Content           string        `json:"content"`
-	Video             Video         `json:"video"`
-	VideoPc           VideoPc       `json:"video_pc"`
-	IsVideo           int           `json:"is_video"`
-	Dualclass         []Dualclass   `json:"dualclass"`
-	SchoolSpecialNum  int           `json:"school_special_num"`
-	Special           []Special     `json:"special"`
-	NatureName        string        `json:"nature_name"`
-	ProvinceScoreYear string        `json:"province_score_year"`
-	QsWorld           string        `json:"qs_world"`
-	Rank              Rank          `json:"rank"`
-	Fenxiao           []Fenxiao     `json:"fenxiao"`
-	GbhURL            string        `json:"gbh_url"`
-	IsYikao           int           `json:"is_yikao"`
-	YkFeature         []string      `json:"yk_feature"`
-	YkType            []string      `json:"yk_type"`
+	SchoolID     string `json:"school_id"`
+	DataCode     string `json:"data_code"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	SchoolType   string `json:"school_type"`
+	SchoolNature string `json:"school_nature"`
+	Level        string `json:"level"`
+	CodeEnroll   string `json:"code_enroll"`
+	//ZsCode       string `json:"zs_code"`
+	//Belong       string `json:"belong"`
+	F985 string `json:"f985"`
+	F211 string `json:"f211"`
+	//Department     string `json:"department"`
+	//Admissions     string `json:"admissions"`
+	//Central        string `json:"central"`
+	DualClass string `json:"dual_class"`
+	//IsSeal         string `json:"is_seal"`
+	//AppliedGrade   string `json:"applied_grade"`
+	NumSubject string `json:"num_subject"`
+	NumMaster  string `json:"num_master"`
+	NumDoctor  string `json:"num_doctor"`
+	//NumAcademician string `json:"num_academician"`
+	//NumLibrary     string `json:"num_library"`
+	//NumLab         string `json:"num_lab"`
+	//ProvinceID     string `json:"province_id"`
+	//CityID         string `json:"city_id"`
+	//CountyID       string `json:"county_id"`
+	//IsAds          string `json:"is_ads"`
+	//IsRecruitment  string `json:"is_recruitment"`
+	//CreateDate     string `json:"create_date"`
+	//Area           int    `json:"area"`
+	//OldName        string `json:"old_name"`
+	//IsFenxiao      string `json:"is_fenxiao"`
+	//Status         string `json:"status"`
+	//AddID          string `json:"add_id"`
+	//AddTime        string `json:"add_time"`
+	//UpdateID       string `json:"update_id"`
+	//UpdateTime     string `json:"update_time"`
+	//AdLevel        string `json:"ad_level"`
+	//Short          string `json:"short"`
+	//EPc            string `json:"e_pc"`
+	//EApp           string `json:"e_app"`
+	//RuankeRank     string `json:"ruanke_rank"`
+	//Single         string `json:"single"`
+	//CollegesLevel  string `json:"colleges_level"`
+	//Doublehigh     string `json:"doublehigh"`
+	//WslRank        string `json:"wsl_rank"`
+	//QsRank         string `json:"qs_rank"`
+	//XyhRank        string `json:"xyh_rank"`
+	//IsSell         string `json:"is_sell"`
+	//EolRank        string `json:"eol_rank"`
+	//SchoolBatch    string `json:"school_batch"`
+	//UsRank         string `json:"us_rank"`
+	//IsLogo         string `json:"is_logo"`
+	NumMaster2 string `json:"num_master2"`
+	NumDoctor2 string `json:"num_doctor2"`
+	//AiStatus          string        `json:"ai_status"`
+	//IsAds2            string        `json:"is_ads2"`
+	//CoopMoney         string        `json:"coop_money"`
+	//BdoldName         string        `json:"bdold_name"`
+	GbhNum    string `json:"gbh_num"`
+	LevelName string `json:"level_name"`
+	TypeName  string `json:"type_name"`
+	//SchoolTypeName    string        `json:"school_type_name"`
+	//SchoolNatureName  string        `json:"school_nature_name"`
+	DualClassName string `json:"dual_class_name"`
+	//SingleYear        int           `json:"single_year"`
+	//Remark            []interface{} `json:"remark"`
+	ProvinceName string `json:"province_name"`
+	CityName     string `json:"city_name"`
+	//TownName          string        `json:"town_name"`
+	//Weiwangzhan       string        `json:"weiwangzhan"`
+	//Yjszs             string        `json:"yjszs"`
+	//Xiaoyuan          string        `json:"xiaoyuan"`
+	Email       string `json:"email"`
+	SchoolEmail string `json:"school_email"`
+	//Address           string        `json:"address"`
+	//Postcode          string        `json:"postcode"`
+	Site        string `json:"site"`
+	SchoolSite  string `json:"school_site"`
+	Phone       string `json:"phone"`
+	SchoolPhone string `json:"school_phone"`
+	//Miniprogram       string        `json:"miniprogram"`
+	Content string `json:"content"`
+	//Video             Video         `json:"video"`
+	//VideoPc           VideoPc       `json:"video_pc"`
+	//IsVideo           int           `json:"is_video"`
+	Dualclass []Dualclass `json:"dualclass"`
+	//SchoolSpecialNum  int           `json:"school_special_num"`
+	//Special           []Special     `json:"special"`
+	//NatureName        string        `json:"nature_name"`
+	//ProvinceScoreYear string        `json:"province_score_year"`
+	//QsWorld           string        `json:"qs_world"`
+	//Rank              Rank          `json:"rank"`
+	//Fenxiao           []Fenxiao     `json:"fenxiao"`
+	//GbhURL            string        `json:"gbh_url"`
+	//IsYikao           int           `json:"is_yikao"`
+	//YkFeature         []string      `json:"yk_feature"`
+	//YkType            []string      `json:"yk_type"`
 }
-type Video struct {
-	SchoolID string `json:"school_id"`
-	URL      string `json:"url"`
-	URLType  string `json:"url_type"`
-	ImgURL   string `json:"img_url"`
-}
-type VideoPc struct {
-	SchoolID string `json:"school_id"`
-	URL      string `json:"url"`
-	URLType  string `json:"url_type"`
-	ImgURL   string `json:"img_url"`
-}
+
+//	type Video struct {
+//		SchoolID string `json:"school_id"`
+//		URL      string `json:"url"`
+//		URLType  string `json:"url_type"`
+//		ImgURL   string `json:"img_url"`
+//	}
+//
+//	type VideoPc struct {
+//		SchoolID string `json:"school_id"`
+//		URL      string `json:"url"`
+//		URLType  string `json:"url_type"`
+//		ImgURL   string `json:"img_url"`
+//	}
 type Dualclass struct {
 	ID       string `json:"id"`
 	SchoolID string `json:"school_id"`
 	Class    string `json:"class"`
 }
-type Special struct {
-	ID               string `json:"id"`
-	SchoolID         string `json:"school_id"`
-	SpecialID        string `json:"special_id"`
-	NationFeature    string `json:"nation_feature"`
-	ProvinceFeature  string `json:"province_feature"`
-	IsImportant      string `json:"is_important"`
-	LimitYear        string `json:"limit_year"`
-	Year             string `json:"year"`
-	Level3Weight     string `json:"level3_weight"`
-	NationFirstClass string `json:"nation_first_class"`
-	XuekeRankScore   string `json:"xueke_rank_score"`
-	IsVideo          int    `json:"is_video"`
-	SpecialName      string `json:"special_name"`
-	LevelName        string `json:"level_name"`
-}
-type Rank struct {
-	RuankeRank string `json:"ruanke_rank"`
-	XyhRank    string `json:"xyh_rank"`
-	QsWorld    string `json:"qs_world"`
-	UsRank     string `json:"us_rank"`
-	RkMb       string `json:"rk_mb"`
-	RkDl       string `json:"rk_dl"`
-	RkZw       string `json:"rk_zw"`
-	RkYy       string `json:"rk_yy"`
-	RkCj       string `json:"rk_cj"`
-	RkYuy      string `json:"rk_yuy"`
-	RkZf       string `json:"rk_zf"`
-	RkTy       string `json:"rk_ty"`
-	RkMz       string `json:"rk_mz"`
-	XyhGz1     string `json:"xyh_gz_1"`
-	XyhGz2     string `json:"xyh_gz_2"`
-	XyhGz3     string `json:"xyh_gz_3"`
-	XyhMb1     string `json:"xyh_mb_1"`
-	XyhMb2     string `json:"xyh_mb_2"`
-	XyhMb3     string `json:"xyh_mb_3"`
-	TwsChina   string `json:"tws_china"`
-}
-type Yuanxi struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-type Fenxiao struct {
-	FxName string   `json:"fx_name"`
-	Yuanxi []Yuanxi `json:"yuanxi"`
-}
+
+//type Special struct {
+//	ID               string `json:"id"`
+//	SchoolID         string `json:"school_id"`
+//	SpecialID        string `json:"special_id"`
+//	NationFeature    string `json:"nation_feature"`
+//	ProvinceFeature  string `json:"province_feature"`
+//	IsImportant      string `json:"is_important"`
+//	LimitYear        string `json:"limit_year"`
+//	Year             string `json:"year"`
+//	Level3Weight     string `json:"level3_weight"`
+//	NationFirstClass string `json:"nation_first_class"`
+//	XuekeRankScore   string `json:"xueke_rank_score"`
+//	IsVideo          int    `json:"is_video"`
+//	SpecialName      string `json:"special_name"`
+//	LevelName        string `json:"level_name"`
+//}
+//type Rank struct {
+//	RuankeRank string `json:"ruanke_rank"`
+//	XyhRank    string `json:"xyh_rank"`
+//	QsWorld    string `json:"qs_world"`
+//	UsRank     string `json:"us_rank"`
+//	RkMb       string `json:"rk_mb"`
+//	RkDl       string `json:"rk_dl"`
+//	RkZw       string `json:"rk_zw"`
+//	RkYy       string `json:"rk_yy"`
+//	RkCj       string `json:"rk_cj"`
+//	RkYuy      string `json:"rk_yuy"`
+//	RkZf       string `json:"rk_zf"`
+//	RkTy       string `json:"rk_ty"`
+//	RkMz       string `json:"rk_mz"`
+//	XyhGz1     string `json:"xyh_gz_1"`
+//	XyhGz2     string `json:"xyh_gz_2"`
+//	XyhGz3     string `json:"xyh_gz_3"`
+//	XyhMb1     string `json:"xyh_mb_1"`
+//	XyhMb2     string `json:"xyh_mb_2"`
+//	XyhMb3     string `json:"xyh_mb_3"`
+//	TwsChina   string `json:"tws_china"`
+//}
+//type Yuanxi struct {
+//	ID   string `json:"id"`
+//	Name string `json:"name"`
+//}
+//type Fenxiao struct {
+//	FxName string   `json:"fx_name"`
+//	Yuanxi []Yuanxi `json:"yuanxi"`
+//}
 
 type JobDetailResponse struct {
 	Code    string `json:"code"`
@@ -278,7 +281,21 @@ type JobDetailResponse struct {
 	} `json:"data"`
 	Md5 string `json:"md5"`
 }
+type JobDetailNullResp struct {
+	Code    string            `json:"code"`
+	Message string            `json:"message"`
+	Data    JobDetailNullData `json:"data"`
+	Md5     string            `json:"md5"`
+}
 
+type JobDetailNullData struct {
+	Jobrate string `json:"jobrate"`
+	//Province string `json:"province"`
+	//Attr     string `json:"attr"`
+	//Company  string `json:"company"`
+	//Gradute  string `json:"gradute"`
+	//Remark   string `json:"remark"`
+}
 type ProvinceScoreResponse struct {
 	Code      string `json:"code"`
 	Message   string `json:"message"`
@@ -297,13 +314,13 @@ type ItemScore struct {
 	//Filing            int    `json:"filing"`
 	//FirstKm           int    `json:"first_km"`
 	//LocalBatchID      string `json:"local_batch_id"`
-	//LocalBatchName string `json:"local_batch_name"`
+	LocalBatchName string `json:"local_batch_name"`
 	//LocalProvinceName string `json:"local_province_name"`
 	//LocalTypeName     string `json:"local_type_name"`
 	//MajorScore        string `json:"major_score"`
 	//Max        string `json:"max"`
-	Min int `json:"min"`
-	//MinSection int `json:"min_section"`
+	Min        int         `json:"min"`
+	MinSection interface{} `json:"min_section"`
 	//Name              string `json:"name"`
 	//NatureName        string `json:"nature_name"`
 	//Num               string `json:"num"`
@@ -313,7 +330,7 @@ type ItemScore struct {
 	//SchoolID          int    `json:"school_id"`
 	//SgFxk             int    `json:"sg_fxk"`
 	//SgInfo            string `json:"sg_info"`
-	//SgName            string `json:"sg_name"`
+	SgName string `json:"sg_name"`
 	//SgSxk             string `json:"sg_sxk"`
 	//SgType            int    `json:"sg_type"`
 	//SpecialGroup      string `json:"special_group"`
