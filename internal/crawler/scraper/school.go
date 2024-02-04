@@ -17,8 +17,8 @@ func SchoolList(page int) (*response.SchoolListResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	var data = strings.NewReader(`{"keyword":"","page":` + strconv.Itoa(page) + `,"province_id":"","ranktype":"","request_type":1,"signsafe":"a6beb63405f371aece65cadfb263f006","size":100,"top_school_id":"[2461]","type":"","uri":"apidata/api/gkv3/school/lists"}`)
-	req, err := http.NewRequest("POST", "https://api.zjzw.cn/web/api/?keyword=&page="+strconv.Itoa(page)+"&province_id=&ranktype=&request_type=1&size=5&top_school_id=\\[2461\\]&type=&uri=apidata/api/gkv3/school/lists&signsafe=a6beb63405f371aece65cadfb263f006", data)
+	var data = strings.NewReader(`{"keyword":"","page":` + strconv.Itoa(page) + `,"province_id":"","ranktype":"","request_type":1,"signsafe":"a6beb63405f371aece65cadfb263f006","size":20,"top_school_id":"[2461]","type":"","uri":"apidata/api/gkv3/school/lists"}`)
+	req, err := http.NewRequest("POST", "https://api.zjzw.cn/web/api/?keyword=&page="+strconv.Itoa(page)+"&province_id=&ranktype=&request_type=1&size=20&top_school_id=\\[2461\\]&type=&uri=apidata/api/gkv3/school/lists&signsafe=a6beb63405f371aece65cadfb263f006", data)
 	if err != nil {
 		return nil, err
 	}
@@ -163,13 +163,13 @@ func ProvinceScore(schoolId int, provinceId int, typeId int, year int) (*respons
 	}
 	provinceScoreResp := &response.ProvinceScoreResponse{}
 	if err = json.Unmarshal(bodyText, provinceScoreResp); err != nil {
-		common.LOG.Error("job detail.body:" + string(bodyText))
+		common.LOG.Error("Job Detail.Body: " + string(bodyText))
 		fp := &response.FrequentResponse{}
 		if err = json.Unmarshal(bodyText, fp); err != nil {
-			common.LOG.Panic("job detail:" + err.Error())
+			common.LOG.Panic("不是访问过于频繁: " + err.Error())
 		}
 		if fp.Message == "访问太过频繁，请稍后再试" {
-			common.LOG.Panic("job detail:" + err.Error())
+			common.LOG.Panic("是访问过于频繁: " + err.Error())
 		}
 	}
 	return provinceScoreResp, nil

@@ -1,8 +1,10 @@
 package model
 
 import (
+	"fmt"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"gorm.io/gorm"
+	"time"
 )
 
 // 定义 Schools 表格的模型
@@ -51,13 +53,54 @@ func DeleteSchool(db *gorm.DB, id int) {
 	db.Delete(&School{}, id)
 }
 
-func CreateSchoolScore(school *School, score []*Score) {
+func CreateSchoolScore(school *School, scores map[string]*Score) error {
 	tx := common.DB.Begin()
+
 	if err := tx.Create(school).Error; err != nil {
 		common.LOG.Error("CreateSchoolScore: " + err.Error())
+		tx.Rollback()
+		if common.ErrMysqlDuplicate.Is(err) {
+			return nil
+		}
+		return err
 	}
-	if err := tx.Create(score).Error; err != nil {
-		common.LOG.Error("CreateSchoolScore: " + err.Error())
+	for _, score := range scores {
+		if err := tx.Create(score).Error; err != nil {
+			tx.Rollback()
+			common.LOG.Error("CreateSchoolScore: " + err.Error())
+			return err
+		}
 	}
 	tx.Commit()
+	return nil
+}
+
+func MustCreateSchoolScore(school *School, scores map[string]*Score) {
+	tryCount := 0
+this:
+	for {
+		errChan := make(chan error, 1)
+		nilChan := make(chan error, 1)
+		go func() {
+			err := CreateSchoolScore(school, scores)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			nilChan <- nil
+		}()
+		ticker := time.NewTicker(10 * time.Second)
+		select {
+		case <-nilChan:
+			break this
+		case <-ticker.C:
+			select {
+			case err := <-errChan:
+				common.LOG.Error("MustCreateSchoolScore: err:" + err.Error())
+			default:
+			}
+			tryCount++
+			common.LOG.Error(fmt.Sprintf("MustCreateSchoolScore:	Time Out 10s TryCount:%d schoolName:", tryCount, school.Name))
+		}
+	}
 }

@@ -1,15 +1,15 @@
-package crawler
+package migration
 
 import (
-	"github.com/big-dust/DreamBridge/internal/crawler/migration"
+	"github.com/big-dust/DreamBridge/internal/crawler/response"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"github.com/big-dust/DreamBridge/pkg/config"
 	"github.com/big-dust/DreamBridge/pkg/gorm"
-	"github.com/big-dust/DreamBridge/pkg/proxy"
 	"github.com/big-dust/DreamBridge/pkg/zap"
+	"testing"
 )
 
-func Start() {
+func TestMigrateSchoolScores(t *testing.T) {
 	// 初始化配置
 	common.CONFIG = config.New("./config/config.toml")
 	// 日志配置
@@ -20,16 +20,15 @@ func Start() {
 		panic("gorm:" + err.Error())
 	}
 	common.DB = DB
-	// 开启代理
-	if common.CONFIG.Bool("proxy.switchon") {
-		proxy.ChangeHttpProxyIP()
-		//go func() {
-		//	for {
-		//		time.Sleep(10 * time.Second)
-		//		proxy.ChangeHttpProxyIP()
-		//	}
-		//}()
+	item := &response.Item{
+		SchoolID:      2561,
+		Name:          "西安工商学院",
+		CodeEnroll:    "1368200",
+		CityName:      "西安市",
+		DualClassName: "",
+		F211:          0,
+		F985:          0,
+		Level:         "普通本科",
 	}
-	// 爬取数据迁移到数据库
-	migration.Migrate()
+	MigrateSchoolScores(1, *item)
 }

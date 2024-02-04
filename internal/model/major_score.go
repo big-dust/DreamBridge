@@ -8,6 +8,7 @@ type MajorScore struct {
 	Location          string
 	Year              int
 	Kelei             string
+	Batch             string
 	RecruitmentNumber int
 	LowestScore       int
 	LowestRank        int

@@ -82,11 +82,11 @@ type RecruitInfo struct {
 }
 
 type HistoryAdmissionResponse struct {
-	Code    string             `json:"code"`
-	Message string             `json:"message"`
-	Data    HistoryRecruitData `json:"data"`
-	Md5     string             `json:"md5"`
-	Time    string             `json:"time"`
+	Code    string               `json:"code"`
+	Message string               `json:"message"`
+	Data    HistoryAdmissionData `json:"data"`
+	Md5     string               `json:"md5"`
+	Time    string               `json:"time"`
 }
 
 // 2-7文科，1-7理科，2074-14历史类，2073-14物理类

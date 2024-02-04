@@ -7,7 +7,6 @@ import (
 	"github.com/big-dust/DreamBridge/internal/crawler/scraper"
 	"github.com/big-dust/DreamBridge/internal/model"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
-	"github.com/big-dust/DreamBridge/pkg/proxy"
 	"runtime/debug"
 	"strconv"
 	"sync"
@@ -18,22 +17,25 @@ var wg = &sync.WaitGroup{}
 
 func Migrate() {
 	defer LOGPageCount()
-	for common.Page <= 577 {
+	for common.Page <= 145 {
 		//学校基础信息
 		list := safe.GetSchoolListSafe(common.Page)
 		common.Page++ //下一页
-		proxy.ChangeHttpProxyIP()
+		//proxy.ChangeHttpProxyIP()
 		time.Sleep(2 * time.Second)
 		for i, item := range list.Data.Item {
 			wg.Add(1)
-			go MigrateSchoolScores(i, &item)
+			go MigrateSchoolScores(i, item)
 		}
 	}
 	wg.Wait()
 }
 
-func MigrateSchoolScores(i int, item *response.Item) {
+func MigrateSchoolScores(i int, item response.Item) {
 	defer func() {
+		if r := recover(); r != nil {
+			common.LOG.Error(fmt.Sprintf("MigrateSchoolScores: Panic: %v", r))
+		}
 		wg.Done()
 		common.Mu.Lock()
 		common.Count++
@@ -74,13 +76,12 @@ func MigrateSchoolScores(i int, item *response.Item) {
 		EmploymentRate:              job,
 		DoubleFirstClassDisciplines: text,
 	}
-
 	var scores []*model.Score
 	// 学校各省历年分数（这里只针对湖北省）
 	for year := 2021; year <= 2023; year++ {
 		// 物理类
 		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_Physics, year)...)
-		//历史类
+		// 历史类
 		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_History, year)...)
 	}
 	for year := 2018; year <= 2020; year++ {
@@ -89,8 +90,14 @@ func MigrateSchoolScores(i int, item *response.Item) {
 		// 文科
 		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_wen, year)...)
 	}
-
-	model.CreateSchoolScore(school, scores)
+	// 去重
+	scoresDistinct := make(map[string]*model.Score, 30)
+	for _, score := range scores {
+		key := fmt.Sprintf("%d-%d-%d-%d-%s-%s-%s", score.SchoolID, score.Location, score.TypeId, score.Year, score.Tag, score.SgName, score.BatchName)
+		scoresDistinct[key] = score
+	}
+	// Must！
+	model.MustCreateSchoolScore(school, scoresDistinct)
 }
 
 func MigrateSpecialScores() {
@@ -116,29 +123,69 @@ func MigrateSpecialScores() {
 			}
 			specials = append(specials, special)
 		}
-		var scores []*model.MajorScore
 		recruit, err := scraper.HistoryRecruit(schoolId, common.HuBei)
 		if err != nil {
 			common.LOG.Error("HistoryRecruit:" + err.Error())
 		}
-		for id, major := range recruit.Data {
-			id, _ := strconv.Atoi(id)
-			for id, kelei := range major {
-				for i, year := range kelei {
+
+		scores := make(map[string]*model.MajorScore, 60)
+		for major_id, major := range recruit.Data {
+			for kelei_id, kelei := range major {
+				for _, yearInfo := range kelei {
+					major_id, _ := strconv.Atoi(major_id)
+					year, _ := strconv.Atoi(yearInfo.Year)
+					num, _ := strconv.Atoi(yearInfo.Num)
+					keleiStr := common.Kelei(kelei_id)
 					score := &model.MajorScore{
-						SpecialID:         id,
+						SpecialID:         major_id,
 						Location:          "湖北",
-						Year:              0,
-						Kelei:             "",
-						RecruitmentNumber: 0,
+						Year:              year,
+						Kelei:             keleiStr,
+						Batch:             yearInfo.Batch,
+						RecruitmentNumber: num,
 						LowestScore:       0,
 						LowestRank:        0,
 					}
+					key := fmt.Sprintf("%d-%s-%d-%s-%s", major_id, "湖北", year, keleiStr, yearInfo.Batch)
+					if _, exist := scores[key]; !exist {
+						scores[key] = score
+						continue
+					}
+					common.LOG.Info("key exist: " + key)
+				}
+			}
+		}
+		admission, _ := scraper.HistoryAdmission(schoolId, common.HuBei)
+		for major_id, major := range admission.Data {
+			for kelei_id, kelei := range major {
+				for _, yearInfo := range kelei {
+					major_id, _ := strconv.Atoi(major_id)
+					year, _ := strconv.Atoi(yearInfo.Year)
+					keleiStr := common.Kelei(kelei_id)
+					key := fmt.Sprintf("%d-%s-%d-%s-%s", major_id, "湖北", year, keleiStr, yearInfo.Batch)
+					lowestScore, _ := strconv.Atoi(yearInfo.Min)
+					rank, _ := strconv.Atoi(yearInfo.MinSection)
+					score, exist := scores[key]
+					if !exist {
+						score := &model.MajorScore{
+							SpecialID:         major_id,
+							Location:          "湖北",
+							Year:              year,
+							Kelei:             keleiStr,
+							Batch:             yearInfo.Batch,
+							RecruitmentNumber: 0,
+							LowestScore:       lowestScore,
+							LowestRank:        rank,
+						}
+						scores[key] = score
+						continue
+					}
+					score.LowestScore = lowestScore
+					score.LowestRank = rank
 				}
 			}
 		}
 	}
-
 }
 
 func TextDualClass(info *response.SchoolInfoResponse) string {
