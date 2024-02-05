@@ -37,10 +37,12 @@ func CreateSchool(school *School) error {
 }
 
 // 查询记录
-func GetSchoolByID(db *gorm.DB, id int) (School, error) {
-	var school School
-	err := db.Where("id = ?", id).First(&school).Error
-	return school, err
+func GetSchoolIdList() ([]int, error) {
+	var schoolIdList []int
+	if err := common.DB.Model(&School{}).Select("id").Find(&schoolIdList).Error; err != nil {
+		return nil, err
+	}
+	return schoolIdList, nil
 }
 
 // 更新记录

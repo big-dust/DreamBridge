@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/big-dust/DreamBridge/internal/crawler/response"
+	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"io"
 	"net/http"
 )
 
-func SpecialInfo(schoolId int) (*response.SpecialResponse, error) {
+func SpecialInfo(schoolId int) (*response.SpecialResponse[response.SpecialList], error) {
 	client := &http.Client{}
 	url := fmt.Sprintf("https://static-data.gaokao.cn/www/2.0/school/%d/pc_special.json", schoolId)
 	req, err := http.NewRequest("GET", url, nil)
@@ -30,11 +31,31 @@ func SpecialInfo(schoolId int) (*response.SpecialResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	nationFeatureResp := &response.SpecialResponse{}
-	if err = json.Unmarshal(bodyText, nationFeatureResp); err != nil {
-		return nil, err
+	errChan := make(chan error, 2)
+	// 获取本科专业
+	benSpecialResp := &response.SpecialResponse[response.BenSpecialData]{}
+	if err = json.Unmarshal(bodyText, benSpecialResp); err != nil {
+		common.LOG.Info(string(bodyText))
+		errChan <- err
 	}
-	return nationFeatureResp, nil
+
+	// 获取专科专业
+	zhuanSpecialResp := &response.SpecialResponse[response.ZhuanSpecialData]{}
+	if err = json.Unmarshal(bodyText, zhuanSpecialResp); err != nil {
+		common.LOG.Info(string(bodyText))
+		errChan <- err
+	}
+	if len(errChan) == 2 {
+		common.LOG.Error("errChan: " + (<-errChan).Error())
+		return nil, <-errChan
+	}
+	specialList := &response.SpecialResponse[response.SpecialList]{
+		Code:    "",
+		Message: "",
+		Data:    append(benSpecialResp.Data.SpecialDetail.Num1, zhuanSpecialResp.Data.SpecialDetail.Num2...),
+		Md5:     "",
+	}
+	return specialList, nil
 }
 
 // 湖北locationId = 42
@@ -62,7 +83,11 @@ func HistoryRecruit(schoolId int, locationId int) (*response.HistoryRecruitRespo
 	}
 	historyRecruitResp := &response.HistoryRecruitResponse{}
 	if err := json.Unmarshal(bodyText, historyRecruitResp); err != nil {
-		return nil, err
+		common.LOG.Info("URL: " + url)
+		common.LOG.Info(string(bodyText))
+		if SErr, ok := err.(*json.SyntaxError); !ok || SErr.Error() != "invalid character '<' looking for beginning of value" {
+			return nil, err
+		}
 	}
 	return historyRecruitResp, nil
 }
@@ -91,7 +116,11 @@ func HistoryAdmission(schoolId int, locationId int) (*response.HistoryAdmissionR
 	}
 	historyAdmissionResp := &response.HistoryAdmissionResponse{}
 	if err = json.Unmarshal(bodyText, historyAdmissionResp); err != nil {
-		return nil, err
+		common.LOG.Info("URL: " + url)
+		common.LOG.Info(string(bodyText))
+		if SErr, ok := err.(*json.SyntaxError); !ok || SErr.Error() != "invalid character '<' looking for beginning of value" {
+			return nil, err
+		}
 	}
 	return historyAdmissionResp, nil
 }

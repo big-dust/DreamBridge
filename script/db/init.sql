@@ -40,26 +40,29 @@ CREATE TABLE `scores` (
                           CONSTRAINT `scores_ibfk_1` FOREIGN KEY (`school_id`) REFERENCES `schools` (`id`)
 );
 
-create table majors (
-                        id int auto_increment primary key, -- 主键ID
-                        name varchar(255) not null, -- 名称
-                        national_feature boolean, -- 国家特色
-                        level varchar(100), -- 层次
-                        discipline_category varchar(100), -- 学科门类
-                        major_category varchar(100), -- 专业类别
-                        duration int, -- 学制
-                        school_id int, -- 所属院校ID
-                        foreign key (school_id) references schools(id) -- 外键关联院校表
+CREATE TABLE major_scores (
+                            id INT NOT NULL AUTO_INCREMENT,
+                            special_id INT,
+                            location VARCHAR(255),
+                            year INT,
+                            kelei VARCHAR(255),
+                            batch VARCHAR(255),
+                            recruitment_number INT,
+                            lowest_score INT,
+                            lowest_rank INT,
+                            PRIMARY KEY (`id`)
 );
 
-create table major_scores (
-                        special_id int,
-                        location varchar(50),
-                        year     int,
-                        kelei    varchar(50),
-                        recruitment_number int, -- 招收人数
-                        highest_score int, -- 最高分
-                        lowest_score int, -- 最低分
-                        highest_rank int, -- 最高名次
-                        lowest_rank int -- 最低名次
+
+CREATE TABLE majors (
+                       id INT NOT NULL AUTO_INCREMENT,
+                       name VARCHAR(255),
+                       national_feature bool,  -- 这里需要确认布尔类型的处理方式
+                       level VARCHAR(255),
+                       discipline_category VARCHAR(255),
+                       major_category VARCHAR(255),
+                       limit_year VARCHAR(255),
+                       school_id INT,
+                       special_id VARCHAR(255),
+                       PRIMARY KEY (`id`)
 );

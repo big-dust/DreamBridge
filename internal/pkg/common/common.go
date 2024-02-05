@@ -31,6 +31,20 @@ var (
 	}
 )
 
+// typeId: 2-7文科，1-7理科，2074-14历史类，2073-14物理类
 func Kelei(type_id string) string {
+	if type_id[1] == '-' {
+		type_id = type_id[:2]
+	}
+	switch type_id {
+	case "2-":
+		return "文科"
+	case "1-":
+		return "理科"
+	case "2074-14":
+		return "历史类"
+	case "2073-14":
+		return "物理类"
+	}
 	return ""
 }

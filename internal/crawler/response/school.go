@@ -152,7 +152,7 @@ type SchoolInfoData struct {
 	//IsVideo           int           `json:"is_video"`
 	Dualclass []Dualclass `json:"dualclass"`
 	//SchoolSpecialNum  int           `json:"school_special_num"`
-	//Special           []Special     `json:"special"`
+	//Special           []Special     `json:"safe"`
 	//NatureName        string        `json:"nature_name"`
 	//ProvinceScoreYear string        `json:"province_score_year"`
 	//QsWorld           string        `json:"qs_world"`

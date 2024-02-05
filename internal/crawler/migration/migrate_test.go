@@ -30,5 +30,19 @@ func TestMigrateSchoolScores(t *testing.T) {
 		F985:          0,
 		Level:         "普通本科",
 	}
-	MigrateSchoolScores(1, *item)
+	MigrateSchoolScoresOneSafe(1, *item)
+}
+
+func TestMigrateSpecialScoresOneSafe(t *testing.T) {
+	// 初始化配置
+	common.CONFIG = config.New("./config/config.toml")
+	// 日志配置
+	common.LOG = zap.AddZap()
+	// 连接数据库
+	DB, err := gorm.NewGorm()
+	if err != nil {
+		panic("gorm:" + err.Error())
+	}
+	common.DB = DB
+	MigrateSpecialScoresOneSafe(602)
 }

@@ -4,39 +4,48 @@ import (
 	"fmt"
 	"github.com/big-dust/DreamBridge/internal/crawler/response"
 	"github.com/big-dust/DreamBridge/internal/crawler/safe"
-	"github.com/big-dust/DreamBridge/internal/crawler/scraper"
 	"github.com/big-dust/DreamBridge/internal/model"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"runtime/debug"
 	"strconv"
 	"sync"
-	"time"
 )
 
-var wg = &sync.WaitGroup{}
+var (
+	wgSchool     = &sync.WaitGroup{}
+	wgSpecial    = &sync.WaitGroup{}
+	mu           = &sync.RWMutex{}
+	SuccessCount = 0
+)
 
 func Migrate() {
+	//MigrateSchoolScores()
+	MigrateSpecialScores()
+}
+
+func MigrateSchoolScores() {
 	defer LOGPageCount()
 	for common.Page <= 145 {
 		//学校基础信息
 		list := safe.GetSchoolListSafe(common.Page)
 		common.Page++ //下一页
 		//proxy.ChangeHttpProxyIP()
-		time.Sleep(2 * time.Second)
+		//time.Sleep(2 * time.Second)
 		for i, item := range list.Data.Item {
-			wg.Add(1)
-			go MigrateSchoolScores(i, item)
+			wgSchool.Add(1)
+			go MigrateSchoolScoresOneSafe(i, item)
 		}
 	}
-	wg.Wait()
+	wgSchool.Wait()
 }
 
-func MigrateSchoolScores(i int, item response.Item) {
+func MigrateSchoolScoresOneSafe(i int, item response.Item) {
 	defer func() {
+		wgSchool.Done()
 		if r := recover(); r != nil {
 			common.LOG.Error(fmt.Sprintf("MigrateSchoolScores: Panic: %v", r))
+			return
 		}
-		wg.Done()
 		common.Mu.Lock()
 		common.Count++
 		common.Mu.Unlock()
@@ -100,94 +109,6 @@ func MigrateSchoolScores(i int, item response.Item) {
 	model.MustCreateSchoolScore(school, scoresDistinct)
 }
 
-func MigrateSpecialScores() {
-	for schoolId := 0; schoolId < 4000; schoolId++ {
-		specialInfos, err := scraper.SpecialInfo(schoolId)
-		if err != nil {
-			common.LOG.Error("SpecialInfo: " + err.Error())
-		}
-		// 拿到school的所有专业
-		var specials []*model.Major
-		for _, info := range specialInfos.Data.SpecialDetail["1"] {
-			id, _ := strconv.Atoi(info.ID)
-			special := &model.Major{
-				ID:                 id,
-				Name:               info.SpecialName,
-				NationalFeature:    info.NationFeature == "1", //guo
-				Level:              info.TypeName,
-				DisciplineCategory: info.Level2Name,
-				MajorCategory:      info.Level3Name,
-				LimitYear:          info.LimitYear,
-				SchoolID:           schoolId,
-				SpecialId:          info.SpecialID,
-			}
-			specials = append(specials, special)
-		}
-		recruit, err := scraper.HistoryRecruit(schoolId, common.HuBei)
-		if err != nil {
-			common.LOG.Error("HistoryRecruit:" + err.Error())
-		}
-
-		scores := make(map[string]*model.MajorScore, 60)
-		for major_id, major := range recruit.Data {
-			for kelei_id, kelei := range major {
-				for _, yearInfo := range kelei {
-					major_id, _ := strconv.Atoi(major_id)
-					year, _ := strconv.Atoi(yearInfo.Year)
-					num, _ := strconv.Atoi(yearInfo.Num)
-					keleiStr := common.Kelei(kelei_id)
-					score := &model.MajorScore{
-						SpecialID:         major_id,
-						Location:          "湖北",
-						Year:              year,
-						Kelei:             keleiStr,
-						Batch:             yearInfo.Batch,
-						RecruitmentNumber: num,
-						LowestScore:       0,
-						LowestRank:        0,
-					}
-					key := fmt.Sprintf("%d-%s-%d-%s-%s", major_id, "湖北", year, keleiStr, yearInfo.Batch)
-					if _, exist := scores[key]; !exist {
-						scores[key] = score
-						continue
-					}
-					common.LOG.Info("key exist: " + key)
-				}
-			}
-		}
-		admission, _ := scraper.HistoryAdmission(schoolId, common.HuBei)
-		for major_id, major := range admission.Data {
-			for kelei_id, kelei := range major {
-				for _, yearInfo := range kelei {
-					major_id, _ := strconv.Atoi(major_id)
-					year, _ := strconv.Atoi(yearInfo.Year)
-					keleiStr := common.Kelei(kelei_id)
-					key := fmt.Sprintf("%d-%s-%d-%s-%s", major_id, "湖北", year, keleiStr, yearInfo.Batch)
-					lowestScore, _ := strconv.Atoi(yearInfo.Min)
-					rank, _ := strconv.Atoi(yearInfo.MinSection)
-					score, exist := scores[key]
-					if !exist {
-						score := &model.MajorScore{
-							SpecialID:         major_id,
-							Location:          "湖北",
-							Year:              year,
-							Kelei:             keleiStr,
-							Batch:             yearInfo.Batch,
-							RecruitmentNumber: 0,
-							LowestScore:       lowestScore,
-							LowestRank:        rank,
-						}
-						scores[key] = score
-						continue
-					}
-					score.LowestScore = lowestScore
-					score.LowestRank = rank
-				}
-			}
-		}
-	}
-}
-
 func TextDualClass(info *response.SchoolInfoResponse) string {
 	var text string
 	for _, dualclass := range info.Data.Dualclass {
@@ -202,4 +123,121 @@ func LOGPageCount() {
 		common.LOG.Info(string(debug.Stack()))
 	}
 	common.LOG.Info(fmt.Sprintf("page: %d ,count: %d", common.Page, common.Count))
+}
+
+func MigrateSpecialScores() {
+	// shoolId列表
+	list, err := model.GetSchoolIdList()
+	if err != nil {
+		common.LOG.Panic("GetSchoolIdList: " + err.Error())
+	}
+	for _, schoolId := range list {
+		wgSpecial.Add(1)
+		//go MigrateSpecialScoresOneSafe(schoolId)
+		MigrateSpecialScoresOneSafe(schoolId)
+	}
+	wgSpecial.Wait()
+}
+
+func MigrateSpecialScoresOneSafe(schoolId int) {
+	defer func() {
+		if r := recover(); r != nil {
+			common.LOG.Info(fmt.Sprintf("Panic: MigrateSpecialScoresOneSafe: %v SchoolId: %d", r, schoolId))
+			common.LOG.Error(string(debug.Stack()))
+			return
+		}
+		mu.Lock()
+		SuccessCount++
+		mu.Unlock()
+		wgSpecial.Done()
+		mu.RLock()
+		fmt.Printf("\rNumber: %d", SuccessCount)
+		mu.RUnlock()
+	}()
+
+	specialInfos := safe.MustGetSpecialInfoSafe(schoolId)
+
+	// 拿到school的所有专业
+	var specials []*model.Major
+	for _, info := range specialInfos.Data {
+		id, _ := strconv.Atoi(info.ID)
+		special := &model.Major{
+			ID:                 id,
+			Name:               info.SpecialName,
+			NationalFeature:    info.NationFeature == "1", //guo
+			Level:              info.TypeName,
+			DisciplineCategory: info.Level2Name,
+			MajorCategory:      info.Level3Name,
+			LimitYear:          info.LimitYear,
+			SchoolID:           schoolId,
+			SpecialId:          info.SpecialID,
+		}
+		specials = append(specials, special)
+	}
+
+	// 所有专业的招生信息和录取信息
+	scores := make(map[string]*model.MajorScore, 60)
+
+	recruit := safe.MustGetHistoryRecruit(schoolId)
+
+	for major_id, major := range recruit.Data {
+		for kelei_id, kelei := range major {
+			for _, yearInfo := range kelei {
+				major_id, _ := strconv.Atoi(major_id)
+				year, _ := strconv.Atoi(yearInfo.Year)
+				num, _ := strconv.Atoi(yearInfo.Num)
+				keleiStr := common.Kelei(kelei_id)
+				score := &model.MajorScore{
+					SpecialID:         major_id,
+					Location:          "湖北",
+					Year:              year,
+					Kelei:             keleiStr,
+					Batch:             yearInfo.Batch,
+					RecruitmentNumber: num,
+					LowestScore:       0,
+					LowestRank:        0,
+				}
+				key := fmt.Sprintf("%d-%s-%d-%s-%s", major_id, "湖北", year, keleiStr, yearInfo.Batch)
+				if _, exist := scores[key]; !exist {
+					scores[key] = score
+					continue
+				}
+				scores[key].RecruitmentNumber += num
+				common.LOG.Info(fmt.Sprintf("key exist: %s schoolId: %d", key, schoolId))
+			}
+		}
+	}
+
+	admission := safe.MustGetHistoryAdmission(schoolId)
+
+	for major_id, major := range admission.Data {
+		for kelei_id, kelei := range major {
+			for _, yearInfo := range kelei {
+				major_id, _ := strconv.Atoi(major_id)
+				year, _ := strconv.Atoi(yearInfo.Year)
+				keleiStr := common.Kelei(kelei_id)
+				key := fmt.Sprintf("%d-%s-%d-%s-%s", major_id, "湖北", year, keleiStr, yearInfo.Batch)
+				lowestScore, _ := strconv.Atoi(yearInfo.Min)
+				rank, _ := strconv.Atoi(fmt.Sprintf("%v", yearInfo.MinSection))
+				score, exist := scores[key]
+				if !exist {
+					score := &model.MajorScore{
+						SpecialID:         major_id,
+						Location:          "湖北",
+						Year:              year,
+						Kelei:             keleiStr,
+						Batch:             yearInfo.Batch,
+						RecruitmentNumber: 0,
+						LowestScore:       lowestScore,
+						LowestRank:        rank,
+					}
+					scores[key] = score
+					continue
+				}
+				score.LowestScore = lowestScore
+				score.LowestRank = rank
+			}
+		}
+	}
+	model.MustCreateMajorScores(specials, scores)
 }
