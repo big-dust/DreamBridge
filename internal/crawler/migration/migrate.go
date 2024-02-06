@@ -19,7 +19,7 @@ var (
 )
 
 func Migrate() {
-	//MigrateSchoolScores()
+	MigrateSchoolScores()
 	MigrateSpecialScores()
 }
 
