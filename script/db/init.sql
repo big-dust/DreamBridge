@@ -40,6 +40,7 @@ CREATE TABLE `scores` (
                           CONSTRAINT `scores_ibfk_1` FOREIGN KEY (`school_id`) REFERENCES `schools` (`id`)
 );
 
+
 CREATE TABLE major_scores (
                             id INT NOT NULL AUTO_INCREMENT,
                             special_id INT,
@@ -65,4 +66,35 @@ CREATE TABLE majors (
                        school_id INT,
                        special_id VARCHAR(255),
                        PRIMARY KEY (`id`)
+);
+
+create table school_nums (
+                        id INT NOT NULL AUTO_INCREMENT,
+                        school_id int,
+                        year int,
+                        type_id varchar(50),
+                        number int,
+                        PRIMARY KEY (`id`),
+                        CONSTRAINT `school_id_fk` FOREIGN KEY (`school_id`) REFERENCES `schools` (`id`)
+);
+
+create table users(
+    id       INT          NOT NULL AUTO_INCREMENT,
+    username varchar(50)  not null unique,
+    email    varchar(100) not null unique,
+    password varchar(100) not null,
+    province VARCHAR(255),
+    exam_type VARCHAR(255),
+    school_type VARCHAR(255),
+    physics BOOLEAN,
+    history BOOLEAN,
+    chemistry BOOLEAN,
+    biology BOOLEAN,
+    geography BOOLEAN,
+    politics BOOLEAN,
+    score INT,
+    province_rank INT,
+    holland VARCHAR(255),
+    interests TEXT,
+    PRIMARY KEY (`id`)
 );

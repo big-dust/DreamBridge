@@ -174,3 +174,7 @@ func ProvinceScore(schoolId int, provinceId int, typeId int, year int) (*respons
 	}
 	return provinceScoreResp, nil
 }
+
+func GetPlan(year int) {
+
+}

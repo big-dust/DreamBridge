@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"time"
 )
 
 func NewGorm() (*gorm.DB, error) {
@@ -20,7 +19,7 @@ func NewGorm() (*gorm.DB, error) {
 
 	logout = os.Stdout
 	if common.CONFIG.String("gorm_log.outType") == "file" {
-		logout, err = os.Open(common.CONFIG.String("gorm_log.out"))
+		logout, err = os.OpenFile(common.CONFIG.String("gorm_log.out"), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 		if err != nil {
 			return nil, fmt.Errorf("NewGorm: Cannot open file %s: %v", common.CONFIG.String("gorm_log.out"), err)
 		}
@@ -29,11 +28,10 @@ func NewGorm() (*gorm.DB, error) {
 	newLogger := logger.New(
 		log.New(logout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
-			SlowThreshold:             time.Second,   // Slow SQL threshold
-			LogLevel:                  logger.Silent, // Log level
-			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-			ParameterizedQueries:      true,          // Don't include params in the SQL log
-			Colorful:                  false,         // Disable color
+			LogLevel:                  logger.Info, // Log level
+			IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
+			ParameterizedQueries:      false,       // Don't include params in the SQL log
+			Colorful:                  true,        // Disable color
 		},
 	)
 

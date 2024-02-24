@@ -1,9 +1,10 @@
-package model
+package major_score
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/big-dust/DreamBridge/internal/model/major"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -20,29 +21,25 @@ type MajorScore struct {
 	LowestRank        int
 }
 
-// 创建记录
-func CreateMajorScore(db *gorm.DB, majorScore *MajorScore) {
-	db.Create(majorScore)
+func FindScoreAvg(specialID int, kl string) (*sql.NullFloat64, error) {
+	avgScore := &sql.NullFloat64{}
+	if err := common.DB.Table("major_scores").
+		Select("avg(lowest_score) as avg_score").
+		Find(avgScore, "special_id = ? and kelei = ? and year > 2020 and year <= 2023 and lowest_score != 0", specialID, kl).Error; err != nil {
+		return nil, err
+	}
+	return avgScore, nil
 }
 
-// 查询记录
-func GetMajorScoresBySpecialID(db *gorm.DB, specialID int) ([]MajorScore, error) {
-	var majorScores []MajorScore
-	err := db.Where("special_id = ?", specialID).Find(&majorScores).Error
-	return majorScores, err
+func FindByKeleiIn(majorIds []int, kl ...string) ([]int, error) {
+	var mids []int
+	if err := common.DB.Table("major_scores").Distinct("special_id").Find(&mids, "special_id in (?) and kelei in (?)", majorIds, kl).Error; err != nil {
+		return nil, err
+	}
+	return mids, nil
 }
 
-// 更新记录
-func UpdateMajorScore(db *gorm.DB, majorScore *MajorScore) {
-	db.Save(majorScore)
-}
-
-// 删除记录
-func DeleteMajorScore(db *gorm.DB, specialID int) {
-	db.Delete(&MajorScore{}, "special_id = ?", specialID)
-}
-
-func CreateMajorScores(major []*Major, majorScores map[string]*MajorScore) error {
+func CreateMajorScores(major []*major.Major, majorScores map[string]*MajorScore) error {
 	tx := common.DB.Begin()
 	if err := tx.Create(major).Error; err != nil {
 		tx.Rollback()
@@ -66,7 +63,7 @@ func CreateMajorScores(major []*Major, majorScores map[string]*MajorScore) error
 	return nil
 }
 
-func MustCreateMajorScores(major []*Major, majorScores map[string]*MajorScore) {
+func MustCreateMajorScores(major []*major.Major, majorScores map[string]*MajorScore) {
 	tryCount := 0
 	for {
 		tryCount++

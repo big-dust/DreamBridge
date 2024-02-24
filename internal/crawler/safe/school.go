@@ -1,10 +1,11 @@
+// 可以安全的用于并发，safe中的函数不会导致父协程panic
 package safe
 
 import (
 	"fmt"
 	"github.com/big-dust/DreamBridge/internal/crawler/response"
 	"github.com/big-dust/DreamBridge/internal/crawler/scraper"
-	"github.com/big-dust/DreamBridge/internal/model"
+	"github.com/big-dust/DreamBridge/internal/model/school_score"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"github.com/big-dust/DreamBridge/pkg/proxy"
 	"strconv"
@@ -46,7 +47,7 @@ this:
 	return
 }
 
-func GetScoresSafe(schooldId int, provinceId int, type_id int, year int) []*model.Score {
+func GetScoresSafe(schooldId int, provinceId int, type_id int, year int) []*school_score.Score {
 	var score *response.ProvinceScoreResponse
 this:
 	for {
@@ -74,11 +75,11 @@ this:
 			proxy.ChangeHttpProxyIP()
 		}
 	}
-	var scores []*model.Score
+	var scores []*school_score.Score
 	for _, item := range score.Data.Item {
 		rank := fmt.Sprint(item.MinSection)
 		r, _ := strconv.Atoi(rank)
-		score := &model.Score{
+		score := &school_score.Score{
 			SchoolID:   schooldId,
 			Location:   common.HuBei,
 			Year:       year,

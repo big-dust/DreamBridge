@@ -2,9 +2,15 @@ package migration
 
 import (
 	"fmt"
+	"github.com/big-dust/DreamBridge/internal/crawler/must"
 	"github.com/big-dust/DreamBridge/internal/crawler/response"
 	"github.com/big-dust/DreamBridge/internal/crawler/safe"
-	"github.com/big-dust/DreamBridge/internal/model"
+	"github.com/big-dust/DreamBridge/internal/model/major"
+	"github.com/big-dust/DreamBridge/internal/model/major_score"
+	"github.com/big-dust/DreamBridge/internal/model/school"
+	"github.com/big-dust/DreamBridge/internal/model/school_num"
+	"github.com/big-dust/DreamBridge/internal/model/school_score"
+	"github.com/big-dust/DreamBridge/internal/pkg/algo"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
 	"runtime/debug"
 	"strconv"
@@ -14,13 +20,15 @@ import (
 var (
 	wgSchool     = &sync.WaitGroup{}
 	wgSpecial    = &sync.WaitGroup{}
+	wgPlan       = &sync.WaitGroup{}
 	mu           = &sync.RWMutex{}
 	SuccessCount = 0
 )
 
 func Migrate() {
-	MigrateSchoolScores()
+	//MigrateSchoolScores()
 	MigrateSpecialScores()
+	//MigratePlanNum()
 }
 
 func MigrateSchoolScores() {
@@ -63,7 +71,7 @@ func MigrateSchoolScoresOneSafe(i int, item response.Item) {
 	// 双一流学科text
 	text := TextDualClass(info)
 
-	school := &model.School{
+	s := &school.School{
 		ID:                          item.SchoolID,
 		Name:                        item.Name,
 		BriefIntroduction:           info.Data.Content,
@@ -85,28 +93,28 @@ func MigrateSchoolScoresOneSafe(i int, item response.Item) {
 		EmploymentRate:              job,
 		DoubleFirstClassDisciplines: text,
 	}
-	var scores []*model.Score
+	var scores []*school_score.Score
 	// 学校各省历年分数（这里只针对湖北省）
 	for year := 2021; year <= 2023; year++ {
 		// 物理类
-		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_Physics, year)...)
+		scores = append(scores, safe.GetScoresSafe(s.ID, common.HuBei, common.T_Physics, year)...)
 		// 历史类
-		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_History, year)...)
+		scores = append(scores, safe.GetScoresSafe(s.ID, common.HuBei, common.T_History, year)...)
 	}
 	for year := 2018; year <= 2020; year++ {
 		// 理科
-		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_li, year)...)
+		scores = append(scores, safe.GetScoresSafe(s.ID, common.HuBei, common.T_li, year)...)
 		// 文科
-		scores = append(scores, safe.GetScoresSafe(school.ID, common.HuBei, common.T_wen, year)...)
+		scores = append(scores, safe.GetScoresSafe(s.ID, common.HuBei, common.T_wen, year)...)
 	}
 	// 去重
-	scoresDistinct := make(map[string]*model.Score, 30)
+	scoresDistinct := make(map[string]*school_score.Score, 30)
 	for _, score := range scores {
 		key := fmt.Sprintf("%d-%d-%d-%d-%s-%s-%s", score.SchoolID, score.Location, score.TypeId, score.Year, score.Tag, score.SgName, score.BatchName)
 		scoresDistinct[key] = score
 	}
 	// Must！
-	model.MustCreateSchoolScore(school, scoresDistinct)
+	school.MustCreateSchoolScore(s, scoresDistinct)
 }
 
 func TextDualClass(info *response.SchoolInfoResponse) string {
@@ -127,7 +135,7 @@ func LOGPageCount() {
 
 func MigrateSpecialScores() {
 	// shoolId列表
-	list, err := model.GetSchoolIdList()
+	list, err := school.GetSchoolIdList()
 	if err != nil {
 		common.LOG.Panic("GetSchoolIdList: " + err.Error())
 	}
@@ -158,10 +166,10 @@ func MigrateSpecialScoresOneSafe(schoolId int) {
 	specialInfos := safe.MustGetSpecialInfoSafe(schoolId)
 
 	// 拿到school的所有专业
-	var specials []*model.Major
+	var specials []*major.Major
 	for _, info := range specialInfos.Data {
 		id, _ := strconv.Atoi(info.ID)
-		special := &model.Major{
+		special := &major.Major{
 			ID:                 id,
 			Name:               info.SpecialName,
 			NationalFeature:    info.NationFeature == "1", //guo
@@ -176,7 +184,7 @@ func MigrateSpecialScoresOneSafe(schoolId int) {
 	}
 
 	// 所有专业的招生信息和录取信息
-	scores := make(map[string]*model.MajorScore, 60)
+	scores := make(map[string]*major_score.MajorScore, 60)
 
 	recruit := safe.MustGetHistoryRecruit(schoolId)
 
@@ -187,7 +195,7 @@ func MigrateSpecialScoresOneSafe(schoolId int) {
 				year, _ := strconv.Atoi(yearInfo.Year)
 				num, _ := strconv.Atoi(yearInfo.Num)
 				keleiStr := common.Kelei(kelei_id)
-				score := &model.MajorScore{
+				score := &major_score.MajorScore{
 					SpecialID:         major_id,
 					Location:          "湖北",
 					Year:              year,
@@ -221,7 +229,7 @@ func MigrateSpecialScoresOneSafe(schoolId int) {
 				rank, _ := strconv.Atoi(fmt.Sprintf("%v", yearInfo.MinSection))
 				score, exist := scores[key]
 				if !exist {
-					score := &model.MajorScore{
+					score := &major_score.MajorScore{
 						SpecialID:         major_id,
 						Location:          "湖北",
 						Year:              year,
@@ -239,5 +247,100 @@ func MigrateSpecialScoresOneSafe(schoolId int) {
 			}
 		}
 	}
-	model.MustCreateMajorScores(specials, scores)
+	major_score.MustCreateMajorScores(specials, scores)
+}
+
+func MigratePlanNum() {
+	list, err := school.GetSchoolIdList()
+	if err != nil {
+		common.LOG.Panic("GetSchoolIdList: " + err.Error())
+	}
+	elist, err := school_num.NumList()
+	if err != nil {
+		common.LOG.Panic("NumList: " + err.Error())
+	}
+	SuccessCount += len(elist)
+	list = algo.RemoveFromSlice(list, elist)
+	limitCh := make(chan struct{}, 10)
+	for _, schoolId := range list {
+		limitCh <- struct{}{}
+		wgPlan.Add(1)
+		go MigrateOneSchoolPlan(schoolId, limitCh)
+	}
+	wgPlan.Wait()
+}
+
+func MigrateOneSchoolPlan(schoolId int, limitCh <-chan struct{}) {
+	defer func() {
+		<-limitCh
+		if r := recover(); r != nil {
+			common.LOG.Error("MigrateOneSchoolPlan: Panic" + fmt.Sprint(r))
+			common.LOG.Info(string(debug.Stack()))
+			return
+		}
+		mu.Lock()
+		SuccessCount++
+		mu.Unlock()
+		mu.RLock()
+		fmt.Printf("\rNumber: %d", SuccessCount)
+		mu.RUnlock()
+		wgPlan.Done()
+	}()
+	var schoolNums []*school_num.SchoolNum
+	for year := 2021; year <= 2023; year++ {
+		for _, typeId := range common.TypeIdsPH {
+			sum := 0
+			for _, batchId := range common.BatchIds {
+				for page := 1; page < 10; page++ {
+					plan := must.GetPlanInfo(schoolId, 42, year, typeId, batchId, page, 10)
+					if len(plan.Data.Item) == 0 {
+						break
+					}
+					for _, item := range plan.Data.Item {
+						num, err := strconv.Atoi(item.Num)
+						if err != nil {
+							common.LOG.Error("strconv.Atoi(item.Num): " + err.Error())
+						}
+						sum += num
+					}
+				}
+			}
+			// 科目招生人数入slice
+			sn := &school_num.SchoolNum{
+				SchoolID: schoolId,
+				Year:     year,
+				TypeID:   typeId,
+				Number:   sum,
+			}
+			schoolNums = append(schoolNums, sn)
+		}
+	}
+	for year := 2018; year <= 2020; year++ {
+		for _, typeId := range common.TypeIdsWL {
+			sum := 0
+			for _, batchId := range common.BatchIds {
+				for page := 1; page < 10; page++ {
+					plan := must.GetPlanInfo(schoolId, 42, year, typeId, batchId, page, 10)
+					if len(plan.Data.Item) == 0 {
+						break
+					}
+					for _, item := range plan.Data.Item {
+						num, err := strconv.Atoi(item.Num)
+						if err != nil {
+							common.LOG.Error("strconv.Atoi(item.Num): " + err.Error())
+						}
+						sum += num
+					}
+				}
+			}
+			sn := &school_num.SchoolNum{
+				SchoolID: schoolId,
+				Year:     year,
+				TypeID:   typeId,
+				Number:   sum,
+			}
+			schoolNums = append(schoolNums, sn)
+		}
+	}
+	must.SchoolNumCreate(schoolNums)
 }

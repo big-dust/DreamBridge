@@ -1,9 +1,9 @@
-package model
+package school
 
 import (
 	"fmt"
+	"github.com/big-dust/DreamBridge/internal/model/school_score"
 	"github.com/big-dust/DreamBridge/internal/pkg/common"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -31,9 +31,20 @@ type School struct {
 	DoubleFirstClassDisciplines string
 }
 
-// 创建记录
-func CreateSchool(school *School) error {
-	return common.DB.Create(school).Error
+func FindIDsByLevelIn(IDs []int, isCollege bool) ([]int, error) {
+	var ids []int
+	if err := common.DB.Table("schools").Select("id").Find(&ids, "id in (?) and title_college = ?", IDs, isCollege).Error; err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+func FindOne(id int) (*School, error) {
+	school := &School{}
+	if err := common.DB.First(school, id).Error; err != nil {
+		return nil, err
+	}
+	return school, nil
 }
 
 // 查询记录
@@ -45,17 +56,7 @@ func GetSchoolIdList() ([]int, error) {
 	return schoolIdList, nil
 }
 
-// 更新记录
-func UpdateSchool(db *gorm.DB, school *School) {
-	db.Save(school)
-}
-
-// 删除记录
-func DeleteSchool(db *gorm.DB, id int) {
-	db.Delete(&School{}, id)
-}
-
-func CreateSchoolScore(school *School, scores map[string]*Score) error {
+func CreateSchoolScore(school *School, scores map[string]*school_score.Score) error {
 	tx := common.DB.Begin()
 
 	if err := tx.Create(school).Error; err != nil {
@@ -77,7 +78,7 @@ func CreateSchoolScore(school *School, scores map[string]*Score) error {
 	return nil
 }
 
-func MustCreateSchoolScore(school *School, scores map[string]*Score) {
+func MustCreateSchoolScore(school *School, scores map[string]*school_score.Score) {
 	tryCount := 0
 this:
 	for {
