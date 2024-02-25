@@ -1,6 +1,7 @@
 package zy
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/big-dust/DreamBridge/internal/api/response"
 	"github.com/big-dust/DreamBridge/internal/api/service/zy"
@@ -34,34 +35,67 @@ func Mock(c *gin.Context) {
 	} else {
 		common.LOG.Info("Get Cache Error: " + err.Error())
 	}
+	resp := &types.ZYMockResp{}
+	errChan := make(chan error)
+	p := context.Background()
+	child, cancel := context.WithCancel(p)
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		//保 都是前闭后开
+		bs, err := zy.GetSchools(ctx, uid, -10, -5)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		resp.BaoSchools = bs
+		errChan <- nil
+	}(child)
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		//稳
+		ws, err := zy.GetSchools(child, uid, -5, 5)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		resp.WenSchools = ws
+		errChan <- nil
+	}(child)
 
-	//保 都是前闭后开
-	bs, err := zy.GetSchools(uid, -10, -5)
-	if err != nil {
-		response.FailMsg(c, "获取\"模拟报考信息失败\": "+err.Error())
-		return
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		//冲
+		cs, err := zy.GetSchools(child, uid, 5, 11)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		resp.ChongSchools = cs
+		errChan <- nil
+	}(child)
+	for i := 0; i < 3; i++ {
+		if err := <-errChan; err != nil {
+			cancel()
+			response.FailMsg(c, "获取\"模拟报考信息失败\": "+err.Error())
+			return
+		}
 	}
-	//稳
-	ws, err := zy.GetSchools(uid, -5, 5)
-	if err != nil {
-		response.FailMsg(c, "获取\"模拟报考信息失败\": "+err.Error())
-		return
-	}
-	//冲
-	cs, err := zy.GetSchools(uid, 5, 11)
-	if err != nil {
-		response.FailMsg(c, "获取\"模拟报考信息失败\": "+err.Error())
-		return
-	}
-	resp := &types.ZYMockResp{
-		ChongSchools: cs,
-		WenSchools:   ws,
-		BaoSchools:   bs,
-	}
-
 	cache, _ = json.Marshal(resp)
 	if err = zy.SetResp(owner, cache); err != nil {
 		common.LOG.Error("缓存失败: Owner: " + owner)
 	}
 	response.OkMsgData(c, "获取成功", resp)
+	cancel()
 }

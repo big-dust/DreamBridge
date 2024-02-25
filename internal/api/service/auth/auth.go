@@ -8,7 +8,7 @@ import (
 )
 
 func OkEmailCode(email string, code string) bool {
-	key := common.Dream + "/" + email
+	key := common.PREFIX + "/" + email
 	value, err := common.REDIS.Get(context.Background(), key).Result()
 	if err != nil {
 		return false

@@ -5,6 +5,7 @@ import (
 	"github.com/big-dust/DreamBridge/internal/api/service/user"
 	"github.com/big-dust/DreamBridge/internal/api/types"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 // @Summary		设置用户报考信息
@@ -41,4 +42,39 @@ func SetInfo(c *gin.Context) {
 		return
 	}
 	response.OkMsg(c, "更新信息成功")
+}
+
+// @Summary		获取用户报考信息
+// @Description	获取用户信息接口
+// @Accept			json;multipart/form-data
+// @Produce		json
+// @Param			Authorization		header		string					true	"token"
+// @Success		200					{object}	response.OkMsgDataResp[types.UserGetInfoResp]		"获取信息成功"
+// @Failure		400					{object}	response.FailMsgResp	"获取信息失败"
+// @Router			/api/v1/user/info [get]
+func GetInfo(c *gin.Context) {
+	uid := c.GetInt("uid")
+	info, err := user.GetUserInfo(uid)
+	if err != nil {
+		response.FailMsg(c, "获取信息失败: "+err.Error())
+		return
+	}
+	resp := &types.UserGetInfoResp{
+		Province:   info.Province,
+		ExamType:   info.ExamType,
+		SchoolType: info.SchoolType,
+		Subject: types.Subject{
+			Physics:   info.Physics,
+			History:   info.History,
+			Chemistry: info.Chemistry,
+			Biology:   info.Biology,
+			Geography: info.Geography,
+			Politics:  info.Politics,
+		},
+		Score:        info.Score,
+		ProvinceRank: info.ProvinceRank,
+		Holland:      info.Holland,
+		Interests:    strings.Split(info.Interests, " "),
+	}
+	response.OkMsgData(c, "更新信息成功", resp)
 }

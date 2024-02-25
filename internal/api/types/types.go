@@ -10,7 +10,7 @@ type LoginResp struct {
 }
 
 type RegisterReq struct {
-	Username string `json:"username" form:"username" binding:"required"`
+	Username string `json:"username" form:"username"`
 	Email    string `json:"email" form:"email" binding:"email"`
 	Code     string `json:"code" form:"code" binding:"len=6"`
 	Password string `json:"password" form:"password" binding:"required,min=6"`
@@ -21,6 +21,17 @@ type SendEmailVerificationCodeReq struct {
 }
 
 type UserSetInfoReq struct {
+	Province     string   `json:"province" form:"province"`
+	ExamType     string   `json:"exam_type" form:"exam_type"`
+	SchoolType   string   `json:"school_type" form:"school_type"`
+	Subject      Subject  `json:"subject" form:"subject"`
+	Score        int      `json:"score" form:"score"`
+	ProvinceRank int      `json:"province_rank" form:"province_rank"`
+	Holland      string   `json:"holland" form:"holland"`
+	Interests    []string `json:"interests" form:"interests"`
+}
+
+type UserGetInfoResp struct {
 	Province     string   `json:"province" form:"province"`
 	ExamType     string   `json:"exam_type" form:"exam_type"`
 	SchoolType   string   `json:"school_type" form:"school_type"`

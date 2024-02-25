@@ -44,7 +44,7 @@ var (
 )
 
 const (
-	Dream         = "dream_bridge"
+	PREFIX        = "dream_bridge"
 	Conventional  = "conventional"
 	Investigative = "investigative"
 	Realistic     = "realistic"

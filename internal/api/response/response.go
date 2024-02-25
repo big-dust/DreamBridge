@@ -23,7 +23,7 @@ type OkMsgResp struct {
 	Message string `json:"message"`
 }
 
-type OkMsgDataResp[T types.LoginResp | types.ZYMockResp] struct {
+type OkMsgDataResp[T types.LoginResp | types.ZYMockResp | types.UserGetInfoResp] struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Data    T

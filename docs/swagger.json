@@ -130,6 +130,39 @@
             }
         },
         "/api/v1/user/info": {
+            "get": {
+                "description": "获取用户信息接口",
+                "consumes": [
+                    "json;multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取用户报考信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取信息成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.OkMsgDataResp-types_UserGetInfoResp"
+                        }
+                    },
+                    "400": {
+                        "description": "获取信息失败",
+                        "schema": {
+                            "$ref": "#/definitions/response.FailMsgResp"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "设置用户信息接口",
                 "consumes": [
@@ -335,6 +368,20 @@
                 }
             }
         },
+        "response.OkMsgDataResp-types_UserGetInfoResp": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/types.UserGetInfoResp"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "response.OkMsgDataResp-types_ZYMockResp": {
             "type": "object",
             "properties": {
@@ -423,6 +470,61 @@
                             "$ref": "#/definitions/types.Major"
                         }
                     }
+                }
+            }
+        },
+        "types.Subject": {
+            "type": "object",
+            "properties": {
+                "biology": {
+                    "type": "boolean"
+                },
+                "chemistry": {
+                    "type": "boolean"
+                },
+                "geography": {
+                    "type": "boolean"
+                },
+                "history": {
+                    "type": "boolean"
+                },
+                "physics": {
+                    "type": "boolean"
+                },
+                "politics": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "types.UserGetInfoResp": {
+            "type": "object",
+            "properties": {
+                "exam_type": {
+                    "type": "string"
+                },
+                "holland": {
+                    "type": "string"
+                },
+                "interests": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "province": {
+                    "type": "string"
+                },
+                "province_rank": {
+                    "type": "integer"
+                },
+                "school_type": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "subject": {
+                    "$ref": "#/definitions/types.Subject"
                 }
             }
         },

@@ -24,3 +24,10 @@ func SetUserInfo(id int, req *types.UserSetInfoReq) error {
 	}
 	return user.UpdateOne(id, u)
 }
+func GetUserInfo(id int) (*user.User, error) {
+	u, err := user.FindOne(id)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}

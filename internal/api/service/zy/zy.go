@@ -15,10 +15,16 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // [start:end) 前闭后开
-func GetSchools(uid int, startSore int, endScore int) ([]*types.School, error) {
+func GetSchools(ctx context.Context, uid int, startSore int, endScore int) ([]*types.School, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
 	// 获取考生信息
 	u, err := user.FindOne(uid)
 	if err != nil {
@@ -34,23 +40,48 @@ func GetSchools(uid int, startSore int, endScore int) ([]*types.School, error) {
 	if err != nil {
 		return nil, err
 	}
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
 	// 专科、本科筛选
 	if sids, err = school.FindIDsByLevelIn(sids, u.SchoolType == "本科"); err != nil {
 		return nil, err
 	}
 	// id作为基础信息实例化schools
 	schools := newSchools(sids)
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
 	// 学校名称
 	if err = setSchoolName(schools); err != nil {
 		return nil, err
+	}
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
 	}
 	// 学校历年信息
 	if err = setHistoryInfo(schools, typeID); err != nil {
 		return nil, err
 	}
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
 	// 学校专业、按录取率分开
 	if err = setMajorToSchool(schools, typeID, u.Score); err != nil {
 		return nil, err
+	}
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
 	}
 	// 特征排序
 	traitSort(schools, u)
@@ -72,88 +103,150 @@ func newSchools(schoolIds []int) []*types.School {
 }
 
 func setSchoolName(schools []*types.School) error {
+	errChan := make(chan error)
+	p := context.Background()
+	c, cancel := context.WithCancel(p)
 	for _, s := range schools {
-		sItem, err := school.FindOne(s.ID)
+		go func(ctx context.Context, s *types.School) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			sItem, err := school.FindOne(s.ID)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			s.Name = sItem.Name
+			errChan <- nil
+		}(c, s)
+	}
+	for i := 0; i < len(schools); i++ {
+		err := <-errChan
 		if err != nil {
+			cancel()
 			return err
 		}
-		s.Name = sItem.Name
 	}
+	cancel()
 	return nil
 }
 
 func setHistoryInfo(schools []*types.School, typeID int) error {
+	errChan := make(chan error)
+	actor, cancel := context.WithCancel(context.Background())
 	for _, s := range schools {
-		// 历年招生人数
-		ens, err := school_num.FindHistoryEnrollmentNum(s.ID)
-		if err != nil {
-			return err
-		}
-		for _, en := range ens {
-			info, ok := s.HistoryInfos[en.Year]
-			if !ok {
-				s.HistoryInfos[en.Year] = &types.HistoryInfo{}
-				info = s.HistoryInfos[en.Year]
+		go func(ctx context.Context, s *types.School) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
 			}
-			info.EnrollmentNum = en.Number
-		}
-		// 历年最低分数和最低排名
-		hs, err := school_score.FindHistoryScore(s.ID, typeID)
-		if err != nil {
-			return err
-		}
-		for _, h := range hs {
-			info, ok := s.HistoryInfos[h.Year]
-			if !ok {
-				s.HistoryInfos[h.Year] = &types.HistoryInfo{}
-				info = s.HistoryInfos[h.Year]
+			// 历年招生人数
+			ens, err := school_num.FindHistoryEnrollmentNum(s.ID)
+			if err != nil {
+				errChan <- err
+				return
 			}
-			info.LowestRank = h.LowestRank
-			info.LowestScore = h.Lowest
+			for _, en := range ens {
+				info, ok := s.HistoryInfos[en.Year]
+				if !ok {
+					s.HistoryInfos[en.Year] = &types.HistoryInfo{}
+					info = s.HistoryInfos[en.Year]
+				}
+				info.EnrollmentNum = en.Number
+			}
+			// 历年最低分数和最低排名
+			hs, err := school_score.FindHistoryScore(s.ID, typeID)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			for _, h := range hs {
+				info, ok := s.HistoryInfos[h.Year]
+				if !ok {
+					s.HistoryInfos[h.Year] = &types.HistoryInfo{}
+					info = s.HistoryInfos[h.Year]
+				}
+				info.LowestRank = h.LowestRank
+				info.LowestScore = h.Lowest
+			}
+			errChan <- nil
+		}(actor, s)
+	}
+	for i := 0; i < len(schools); i++ {
+		if err := <-errChan; err != nil {
+			cancel()
+			return err
 		}
 	}
+	cancel()
 	return nil
 }
 
 func setMajorToSchool(schools []*types.School, typeID int, studentScore int) error {
+	errChan := make(chan error)
+	p := context.Background()
+	c, cancel := context.WithCancel(p)
 	for _, s := range schools {
-		// 获取所有的专业
-		majors, err := major.FindBySchoolID(s.ID)
-		if err != nil {
-			return err
-		}
-		mIDs, err := major.FindIDListBySchoolID(s.ID)
-		if err != nil {
-			return err
-		}
-		//获取不考虑的科类
-		omitKelei := common.Omit(typeID)
-		//过滤掉不能上的 typeID 以外的
-		omitIDs, err := major_score.FindByKeleiIn(mIDs, omitKelei...)
-		if err != nil {
-			return err
-		}
-		// 获取必须要的 IDs
-		kl := common.IDConvKelei(typeID)
-		neededIDs, err := major_score.FindByKeleiIn(mIDs, kl)
-		// omit - needIDs
-		algo.RemoveFromSlice(omitIDs, neededIDs)
-		omit := common.SliceToMap[int](omitIDs)
-		for i, m := range majors {
-			specialID, err := strconv.Atoi(m.SpecialId)
+		go func(ctx context.Context, s *types.School) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			// 获取所有的专业
+			majors, err := major.FindBySchoolID(s.ID)
 			if err != nil {
-				return err
+				errChan <- err
+				return
 			}
-			if omit[specialID] {
-				majors = append(majors[:i], majors[i+1:]...)
+			mIDs, err := major.FindIDListBySchoolID(s.ID)
+			if err != nil {
+				errChan <- err
+				return
 			}
-		}
-		// 每一个专业计算录取率、存入
-		err = setMajorToParts(majors, s.Parts, kl, studentScore)
-		if err != nil {
+			//获取不考虑的科类
+			omitKelei := common.Omit(typeID)
+			//过滤掉不能上的 typeID 以外的
+			omitIDs, err := major_score.FindByKeleiIn(mIDs, omitKelei...)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			// 获取必须要的 IDs
+			kl := common.IDConvKelei(typeID)
+			neededIDs, err := major_score.FindByKeleiIn(mIDs, kl)
+			// omit - needIDs
+			algo.RemoveFromSlice(omitIDs, neededIDs)
+			omit := common.SliceToMap[int](omitIDs)
+			for i, m := range majors {
+				specialID, err := strconv.Atoi(m.SpecialId)
+				if err != nil {
+					errChan <- err
+					return
+				}
+				if omit[specialID] {
+					majors = append(majors[:i], majors[i+1:]...)
+				}
+			}
+			// 每一个专业计算录取率、存入
+			err = setMajorToParts(majors, s.Parts, kl, studentScore)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			errChan <- nil
+		}(c, s)
+	}
+	for i := 0; i < len(schools); i++ {
+		if err := <-errChan; err != nil {
+			cancel()
 			return err
 		}
 	}
+	cancel()
 	return nil
 }
 
@@ -218,50 +311,57 @@ func traitSort(schools []*types.School, userInfo *user.User) {
 	like := common.SliceToMap[string](interests)
 	// 性格推荐的专业
 	ho := common.HollandMajorMap[userInfo.Holland]
+	wg := sync.WaitGroup{}
 	for _, sc := range schools {
-		parts := sc.Parts
-		for _, majors := range parts {
-			// 为每一个专业设置权重
-			for _, m := range majors {
-				if like[m.Name] {
-					m.Rate += 10
-				} else {
-					// 模糊匹配
-					ok := SlicesContainsFunc[string](interests, m.Name, func(target string, s string) bool {
-						return strings.Contains(s, m.Name) || strings.Contains(m.Name, s)
-					})
-					if ok {
-						m.Rate += 10
+		wg.Add(1)
+		go func(ctx context.Context, sc *types.School) {
+			defer wg.Done()
+			parts := sc.Parts
+			for _, majors := range parts {
+				// 为每一个专业设置权重
+				for _, m := range majors {
+					if like[m.Name] {
+						m.Weight += 10
+					} else {
+						// 模糊匹配
+						ok := SlicesContainsFunc[string](interests, m.Name, func(target string, s string) bool {
+							return strings.Contains(s, m.Name) || strings.Contains(m.Name, s)
+						})
+						if ok {
+							m.Weight += 10
+						}
+					}
+					if ho[m.Name] {
+						m.Weight += 8
+					} else {
+						hos := common.HollandMajorSlice[userInfo.Holland]
+						ok := SlicesContainsFunc[string](hos, m.Name, func(target string, s string) bool {
+							return strings.Contains(s, m.Name) || strings.Contains(m.Name, s)
+						})
+						if ok {
+							m.Weight += 8
+						}
+					}
+					if common.NationalFocus[m.Name] {
+						m.Weight += 3
+					} else {
+						ok := SlicesContainsFunc[string](common.Focus, m.Name, func(target string, s string) bool {
+							return strings.Contains(s, m.Name) || strings.Contains(m.Name, s)
+						})
+						if ok {
+							m.Weight += 3
+						}
 					}
 				}
-				if ho[m.Name] {
-					m.Rate += 8
-				} else {
-					hos := common.HollandMajorSlice[userInfo.Holland]
-					ok := SlicesContainsFunc[string](hos, m.Name, func(target string, s string) bool {
-						return strings.Contains(s, m.Name) || strings.Contains(m.Name, s)
-					})
-					if ok {
-						m.Rate += 8
-					}
-				}
-				if common.NationalFocus[m.Name] {
-					m.Rate += 3
-				} else {
-					ok := SlicesContainsFunc[string](common.Focus, m.Name, func(target string, s string) bool {
-						return strings.Contains(s, m.Name) || strings.Contains(m.Name, s)
-					})
-					if ok {
-						m.Rate += 3
-					}
-				}
+				// 排序
+				sort.Slice(majors, func(i int, j int) bool {
+					return majors[i].Weight > majors[j].Weight
+				})
 			}
-			// 排序
-			sort.Slice(majors, func(i int, j int) bool {
-				return majors[i].Rate > majors[j].Rate
-			})
-		}
+		}(context.Background(), sc)
+
 	}
+	wg.Wait()
 }
 
 func SlicesContainsFunc[T string](slice []T, target T, f func(target T, s T) bool) bool {
@@ -276,10 +376,6 @@ func SlicesContainsFunc[T string](slice []T, target T, f func(target T, s T) boo
 func SetResp(owner string, value any) error {
 	//缓存
 	return common.REDIS.Set(context.Background(), owner, value, 0).Err()
-}
-
-func DelResp(owner string) error {
-	return common.REDIS.Del(context.Background(), owner).Err()
 }
 
 func GetResp(owner string) ([]byte, error) {

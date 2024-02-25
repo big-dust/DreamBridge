@@ -32,7 +32,7 @@ func Send(toEmail string) error {
 	}
 	//存到redis
 	ctx := context.Background()
-	key := fmt.Sprintf("%s/%s", common.Dream, toEmail)
+	key := fmt.Sprintf("%s/%s", common.PREFIX, toEmail)
 	common.REDIS.Set(ctx, key, randCode, time.Minute*30)
 	return err
 }
